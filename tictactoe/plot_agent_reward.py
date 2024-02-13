@@ -46,22 +46,38 @@ if __name__ == "__main__":
     with open(args.path, 'rb') as f:
         agent = pickle.load(f)
 
-    if not os.path.isfile(args.path2):
-        print("Cannot load agent: file 2 does not exist. Quitting.")
-        sys.exit(0)
-    with open(args.path2, 'rb') as g:
-        agent2 = pickle.load(g)
+    if args.path2:
+        if not os.path.isfile(args.path2):
+            print("Cannot load agent: file 2 does not exist. Quitting.")
+            sys.exit(0)
+        with open(args.path2, 'rb') as g:
+            agent2 = pickle.load(g)
+    else:
+        agent2 = None
 
-    if not os.path.isfile(args.path3):
-        print("Cannot load agent: file 3 does not exist. Quitting.")
-        sys.exit(0)
-    with open(args.path3, 'rb') as h:
-        agent3 = pickle.load(h)
+    if args.path3:
+        if not os.path.isfile(args.path3):
+            print("Cannot load agent: file 3 does not exist. Quitting.")
+            sys.exit(0)
+        with open(args.path3, 'rb') as h:
+            agent3 = pickle.load(h)
+    else:
+        agent3 = None
 
-    if not os.path.isfile(args.path4):
-        print("Cannot load agent: file 4 does not exist. Quitting.")
-        sys.exit(0)
-    with open(args.path4, 'rb') as i:
-        agent4 = pickle.load(i)
+    if args.path4:
+        if not os.path.isfile(args.path4):
+            print("Cannot load agent: file 4 does not exist. Quitting.")
+            sys.exit(0)
+        with open(args.path4, 'rb') as i:
+            agent4 = pickle.load(i)
+    else:
+        agent4 = None
 
-    plot_agent_reward(agent.rewards, args.name, r2=agent2.rewards, n2=args.name2, r3=agent3.rewards, n3=args.name3, r4=agent4.rewards, n4=args.name4)
+    if agent4 is not None:
+        plot_agent_reward(agent.rewards, args.name, r2=agent2.rewards, n2=args.name2, r3=agent3.rewards, n3=args.name3, r4=agent4.rewards, n4=args.name4)
+    elif agent3 is not None:
+        plot_agent_reward(agent.rewards, args.name, r2=agent2.rewards, n2=args.name2, r3=agent3.rewards, n3=args.name3)
+    elif agent2 is not None:
+        plot_agent_reward(agent.rewards, args.name, r2=agent2.rewards, n2=args.name2)
+    else:
+        plot_agent_reward(agent.rewards, args.name)

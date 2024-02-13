@@ -157,3 +157,71 @@ class SARSAlearner(Learner):
 
         # add r to rewards list
         self.rewards.append(r)
+
+class MCOffPolicyLearner:
+    """
+    A class to implement the Monte Carlo Off Policy agent.
+    """    
+    def __init__(self, alpha, gamma, eps, eps_decay=0.):
+        super().__init__(alpha, gamma, eps, eps_decay)
+    
+    def update(self, s, s_, a, a_, r):
+        """
+        Perform the MC On Policy update of Q values.
+
+        Parameters
+        ----------
+        s : string
+            previous state
+        s_ : string
+            new state
+        a : (i,j) tuple
+            previous action
+        a_ : (i,j) tuple
+            new action
+        r : int
+            reward received after executing action "a" in state "s"
+        """
+        # Update Q(s,a)
+        if s_ is not None:
+            self.Q[a][s] += self.alpha*(r + self.gamma*self.Q[a_][s_] - self.Q[a][s])
+        else:
+            # terminal state update
+            self.Q[a][s] += self.alpha*(r - self.Q[a][s])
+
+        # add r to rewards list
+        self.rewards.append(r)
+
+class MCOnPolicyLearner:
+    """
+    A class to implement the Monte Carlo On Policy agent.
+    """    
+    def __init__(self, alpha, gamma, eps, eps_decay=0.):
+        super().__init__(alpha, gamma, eps, eps_decay)
+
+    def update(self, s, s_, a, a_, r):
+        """
+        Perform the MC On Policy update of Q values.
+
+        Parameters
+        ----------
+        s : string
+            previous state
+        s_ : string
+            new state
+        a : (i,j) tuple
+            previous action
+        a_ : (i,j) tuple
+            new action
+        r : int
+            reward received after executing action "a" in state "s"
+        """
+        # Update Q(s,a)
+        if s_ is not None:
+            self.Q[a][s] += self.alpha*(r + self.gamma*self.Q[a_][s_] - self.Q[a][s])
+        else:
+            # terminal state update
+            self.Q[a][s] += self.alpha*(r - self.Q[a][s])
+
+        # add r to rewards list
+        self.rewards.append(r)
