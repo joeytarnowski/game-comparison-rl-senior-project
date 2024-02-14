@@ -38,7 +38,12 @@ class Learner(ABC):
         for action in self.actions:
             self.Q[action] = collections.defaultdict(int)
         # Keep a list of reward received at each episode
+        print(len(self.Q))
         self.rewards = []
+    
+    def ep_init(self):
+        self.trajectory = []
+        self.reward_cache = []
 
     def get_action(self, s):
         """
@@ -69,8 +74,15 @@ class Learner(ABC):
 
         # update epsilon; geometric decay
         self.eps *= (1.-self.eps_decay)
-
         return action
+    
+    def compute_cum_rewards(self, gamma, t, rewards) -> float:
+        """Cumulative reward function"""
+        cum_reward = 0
+        # cum_reward = rewards[-1] 
+        for tau in range(t, len(rewards)):
+            cum_reward += gamma ** (tau - t) * rewards[tau]
+        return cum_reward
 
     def save(self, path):
         """ Pickle the agent object instance to save the agent's state. """
@@ -79,6 +91,14 @@ class Learner(ABC):
         f = open(path, 'wb')
         pickle.dump(self, f)
         f.close()
+
+    def displayrewards(self):
+        print(self.rewards)
+        print(f"Length of reward array: {len(self.rewards)}")
+
+    def displayq(self):
+        with open('output.txt', 'w') as f:
+            f.write(str(self.Q))
 
     @abstractmethod
     def update(self, s, s_, a, a_, r):
@@ -123,6 +143,11 @@ class Qlearner(Learner):
         # add r to rewards list
         self.rewards.append(r)
 
+    def end_update(self,r):
+        """Dummy function-only used with MC"""
+        pass
+
+
 
 class SARSAlearner(Learner):
     """
@@ -157,8 +182,13 @@ class SARSAlearner(Learner):
 
         # add r to rewards list
         self.rewards.append(r)
+        
 
-class MCOffPolicyLearner:
+    def end_update(self,r):
+        """Dummy function-only used with MC"""
+        pass
+
+class MCOffPolicyLearner(Learner):
     """
     A class to implement the Monte Carlo Off Policy agent.
     """    
@@ -167,7 +197,7 @@ class MCOffPolicyLearner:
     
     def update(self, s, s_, a, a_, r):
         """
-        Perform the MC On Policy update of Q values.
+        Perform the MC Off Policy update of Q values.
 
         Parameters
         ----------
@@ -192,7 +222,7 @@ class MCOffPolicyLearner:
         # add r to rewards list
         self.rewards.append(r)
 
-class MCOnPolicyLearner:
+class MCOnPolicyLearner(Learner):
     """
     A class to implement the Monte Carlo On Policy agent.
     """    
@@ -201,27 +231,41 @@ class MCOnPolicyLearner:
 
     def update(self, s, s_, a, a_, r):
         """
-        Perform the MC On Policy update of Q values.
+        Perform the Monte Carlo update of *trajectory*.
 
         Parameters
         ----------
         s : string
             previous state
         s_ : string
-            new state
+            new state. NOT USED
         a : (i,j) tuple
             previous action
         a_ : (i,j) tuple
-            new action
+            new action. NOT USED
         r : int
             reward received after executing action "a" in state "s"
         """
-        # Update Q(s,a)
-        if s_ is not None:
-            self.Q[a][s] += self.alpha*(r + self.gamma*self.Q[a_][s_] - self.Q[a][s])
-        else:
-            # terminal state update
-            self.Q[a][s] += self.alpha*(r - self.Q[a][s])
-
-        # add r to rewards list
+        self.reward_cache.append(r)
         self.rewards.append(r)
+        self.trajectory.append([s,a])
+                
+
+    def end_update(self, r):
+        """
+        Perform the Monte Carlo update of Q values.
+
+        Parameters
+        ----------
+        reward : int
+            Reward received after completing the episode
+        """
+        t = 0
+        # update Q table for full trajectory
+        for state, action in self.trajectory:
+            reward = self.reward_cache[t]
+            cum_reward = self.compute_cum_rewards(self.gamma, t, self.reward_cache) + reward
+            self.Q[action][state] += self.alpha * (cum_reward - self.Q[action][state])
+            t += 1
+        
+

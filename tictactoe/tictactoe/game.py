@@ -11,7 +11,7 @@ class Game:
 
     def playerMove(self):
         """
-        Querry player for a move and update the board accordingly.
+        Query player for a move and update the board accordingly.
         """
         if self.teacher is not None:
             action = self.teacher.makeMove(self.board)
@@ -114,6 +114,7 @@ class Game:
         # Initialize the agent's state and action
         if player_first:
             self.playerMove()
+        self.agent.ep_init()
         prev_state = getStateKey(self.board)
         prev_action = self.agent.get_action(prev_state)
 
@@ -148,6 +149,7 @@ class Game:
 
         # Game over. Perform final update
         self.agent.update(prev_state, None, prev_action, None, reward)
+        self.agent.end_update(reward, )
 
     def start(self):
         """

@@ -3,7 +3,7 @@ import os
 import pickle
 import sys
 
-from tictactoe.agent import Qlearner, SARSAlearner
+from tictactoe.agent import Qlearner, SARSAlearner, MCOffPolicyLearner, MCOnPolicyLearner
 from tictactoe.teacher import Teacher
 from tictactoe.game import Game
 
@@ -38,6 +38,10 @@ class GameLearning(object):
                         print("Invalid input. Please choose 'y' or 'n'.")
             if args.agent_type == "q":
                 agent = Qlearner(alpha,gamma,epsilon)
+            elif args.agent_type == "mcon":
+                agent = MCOnPolicyLearner(alpha,gamma,epsilon)
+            elif args.agent_type == "mcoff":
+                agent = MCOffPolicyLearner(alpha,gamma,epsilon)
             else:
                 agent = SARSAlearner(alpha,gamma,epsilon)
 
@@ -80,6 +84,7 @@ class GameLearning(object):
             # Monitor progress
             if self.games_played % 1000 == 0:
                 print("Games played: %i" % self.games_played)
+                self.agent.displayq()
         # save final agent
         self.agent.save(self.path)
 
@@ -88,14 +93,18 @@ if __name__ == "__main__":
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="Play Tic-Tac-Toe.")
     parser.add_argument('-a', "--agent_type", type=str, default="q",
-                        choices=['q', 's'],
+                        choices=['q', 's', 'mcon', 'mcoff'],
                         help="Specify the computer agent learning algorithm. "
-                             "AGENT_TYPE='q' for Q-learning and AGENT_TYPE='s' "
-                             "for Sarsa-learning.")
+                             "AGENT_TYPE='q' for Q-learning, AGENT_TYPE='s' "
+                             "for Sarsa-learning, AGENT_TYPE='mcoff' for "
+                             "Monte Carlo off-policy, and AGENT_TYPE='mcon' "
+                             "for Monte Carlo on-policy.")
     parser.add_argument("-p", "--path", type=str, required=False,
                         help="Specify the path for the agent pickle file. "
-                             "Defaults to q_agent.pkl for AGENT_TYPE='q' and "
-                             "sarsa_agent.pkl for AGENT_TYPE='s'.")
+                             "Defaults to q_agent.pkl for AGENT_TYPE='q', "
+                             "mcoff.pkl for AGENT_TYPE='mcoff', mcon.pkl "
+                             "for AGENT_TYPE='mcon', and sarsa_agent.pkl"
+                             "for AGENT_TYPE='s'.")
     parser.add_argument("-l", "--load", action="store_true",
                         help="whether to load trained agent")
     parser.add_argument("-t", "--teacher_episodes", default=None, type=int,
@@ -105,7 +114,15 @@ if __name__ == "__main__":
 
     # set default path
     if args.path is None:
-        args.path = 'q_agent.pkl' if args.agent_type == 'q' else 'sarsa_agent.pkl'
+        match args.agent_type:
+            case 'q':
+                args.path = 'q_agent.pkl'
+            case 'mcon':
+                args.path = 'mcon_agent.pkl'
+            case 'mcoff':
+                args.path = 'mcoff_agent.pkl'
+            case _:
+                args.path = 'sarsa_agent.pkl'
 
     # initialize game instance
     gl = GameLearning(args)
