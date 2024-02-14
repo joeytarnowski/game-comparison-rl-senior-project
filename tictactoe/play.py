@@ -41,7 +41,7 @@ class GameLearning(object):
             elif args.agent_type == "mcon":
                 agent = MCOnPolicyLearner(alpha,gamma,epsilon)
             elif args.agent_type == "mcoff":
-                agent = MCOffPolicyLearner(alpha,gamma,epsilon)
+                agent = MCOffPolicyLearner(alpha,gamma,1, 0.1)
             else:
                 agent = SARSAlearner(alpha,gamma,epsilon)
 
@@ -82,9 +82,8 @@ class GameLearning(object):
             game.start()
             self.games_played += 1
             # Monitor progress
-            if self.games_played % 1000 == 0:
+            if self.games_played % 10000 == 0:
                 print("Games played: %i" % self.games_played)
-                self.agent.displayq()
         # save final agent
         self.agent.save(self.path)
 
