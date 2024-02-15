@@ -4,6 +4,7 @@ import pickle
 import collections
 import numpy as np
 import random
+import time
 
 
 class Learner(ABC):
@@ -27,6 +28,10 @@ class Learner(ABC):
         self.gamma = gamma
         self.eps = eps
         self.eps_decay = eps_decay
+        self.train_time = time.perf_counter()
+        self.num_wins, self.num_losses, self.num_draws = (0 for i in range(3))
+        self.testing_results_rand = [[],[],[]]
+        self.testing_results_opt = [[],[],[]]
         # Possible actions correspond to the set of all x,y coordinate pairs
         self.actions = []
         for i in range(3):
@@ -48,6 +53,16 @@ class Learner(ABC):
         self.target_trajectory = []
         self.reward_cache = []
 
+
+    def update_count(self, result):
+        match result:
+            case "win":
+                self.num_wins += 1
+            case "loss":
+                self.num_losses += 1
+            case _:
+                self.num_draws += 1
+    
     def get_action(self, s):
         """
         Select an action given the current game state.
@@ -153,8 +168,8 @@ class Qlearner(Learner):
         self.rewards.append(r)
 
     def end_update(self,r):
-        """Dummy function-only used with MC"""
-        pass
+        """ends timing"""
+        self.train_time = time.perf_counter() - self.train_time
 
 class SARSAlearner(Learner):
     """
@@ -192,8 +207,8 @@ class SARSAlearner(Learner):
         
 
     def end_update(self,r):
-        """Dummy function-only used with MC"""
-        pass
+        """ends timing"""
+        self.train_time = time.perf_counter() - self.train_time
 
 class MCOffPolicyLearner(Learner):
     """
@@ -257,6 +272,9 @@ class MCOffPolicyLearner(Learner):
                 break
             t += 1
 
+        """ends timing"""
+        self.train_time = time.perf_counter() - self.train_time
+
 class MCOnPolicyLearner(Learner):
     """
     A class to implement the Monte Carlo On Policy agent.
@@ -302,5 +320,8 @@ class MCOnPolicyLearner(Learner):
             cum_reward = self.compute_cum_rewards(self.gamma, t, self.reward_cache) + reward
             self.Q[action][state] += self.alpha * (cum_reward - self.Q[action][state])
             t += 1
+
+        """ends timing"""
+        self.train_time = time.perf_counter() - self.train_time
         
 

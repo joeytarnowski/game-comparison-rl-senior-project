@@ -126,12 +126,14 @@ class Game:
             if not check == -1:
                 # game is over. +1 reward if win, 0 if draw
                 reward = check
+                self.agent.update_count("win" if reward == 1 else "draw")
                 break
             self.playerMove()
             check = self.checkForEnd('X')
             if not check == -1:
                 # game is over. -1 reward if lose, 0 if draw
                 reward = -1*check
+                self.agent.update_count("loss" if reward == -1 else "draw")
                 break
             else:
                 # game continues. 0 reward
