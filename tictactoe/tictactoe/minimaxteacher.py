@@ -1,6 +1,10 @@
 import random
+from multiprocessing import Pool
+from multiprocessing import freeze_support
+from copy import deepcopy
 
-class Teacher:
+
+class MMTeacher:
     """ 
     A class to implement a teacher that knows the optimal playing strategy.
     Teacher returns the best move at any time given the current state of the game.
@@ -21,7 +25,8 @@ class Teacher:
         the optimal strategy as opposed to choosing a random available move.
         """
         self.ability_level = level
-        self.minimax_log = 0
+        self.begin_board = []
+        self.moves_dict = {}
 
     def win(self, board, key='X'):
         """ If we have two in a row and the 3rd is available, take it. """
@@ -38,19 +43,69 @@ class Teacher:
                 return True
         return False
 
-    def minimax(self, board, depth, is_maxim):
-        x = 0
+    def draw(self, board):
+        for i in range(3):
+            for j in range(3):
+                if board[i][j] == '-':
+                    return False
+        return True
 
-    def randomMove(self, board):
-        """ Chose a random move from the available options. """
+    
+    def minimax(self, current_board, depth, is_maxim, alpha, beta):
+        board = current_board
+        if self.win(board):
+            return 10 + depth
+        elif self.win(board, 'O'):
+            return -10 + depth
+
+        if self.draw(board):
+            return 0
+        
+            # Maximizer
+        if (is_maxim) :    
+            best = -1000
+            possibles = self.getMoves(board)
+            for i in possibles:
+                board[i[0]][i[1]] = "X"
+                best = max(best, self.minimax(board, depth + 1, not is_maxim, alpha, beta))
+                board[i[0]][i[1]] = "-"
+                alpha = max(alpha, best)
+                if beta < alpha:
+                    break
+
+            return best
+
+        # Minimizer
+        else:
+            best = 1000
+            possibles = self.getMoves(board)
+            for i in possibles:
+                board[i[0]][i[1]] = "O"
+                best = min(best, self.minimax(board, depth + 1, not is_maxim, alpha, beta))
+                board[i[0]][i[1]] = "-"
+                beta = min(beta, best)
+                if beta < alpha:
+                    break
+
+            return best
+
+    def getMoves(self, board):
         possibles = []
         for i in range(3):
             for j in range(3):
                 if board[i][j] == '-':
                     possibles += [(i, j)]
+        return possibles
+    
+    def randomMove(self, board):
+        """ Chose a random move from the available options. """
+        possibles = self.getMoves(board)
         return possibles[random.randint(0, len(possibles)-1)]
 
-    def makeMove(self, board):
+    def makeMove(self, current_board):
+        # Reset values
+        self.begin_board = current_board
+        self.moves_dict = {}
         """
         Trainer goes through a hierarchy of moves, making the best move that
         is currently available each time. A touple is returned that represents
@@ -58,6 +113,26 @@ class Teacher:
         """
         # Chose randomly with some probability so that the teacher does not always win
         if random.random() > self.ability_level:
-            return self.randomMove(board)
+            return self.randomMove(current_board)
+            
         # Follow optimal strategy
+
+        possibles = self.getMoves(self.begin_board)
+        # Record all move values in dictionary
+        for i in possibles:
+            result = self.startMinimax(i)
+            self.moves_dict[result[0]] = result[1]
+        best_move = max(zip(self.moves_dict.values(), self.moves_dict.keys()))[1]
+        return best_move
+
+    def startMinimax(self,i):
+        board = deepcopy(self.begin_board)
+        board[i[0]][i[1]] = "X"
+        move_val = self.minimax(board, 0, False, 0, 0)
+        board[i[0]][i[1]] = "-"
+
+        return [(i[0],i[1]), move_val]
+    
+
+
         

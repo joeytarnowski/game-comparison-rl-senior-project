@@ -4,11 +4,21 @@ import pickle
 import sys
 import numpy as np
 import matplotlib.pylab as plt
-
+    
 
 def plot_agent_reward(agent, name, *args, **kwargs):
     test_type = kwargs.get('t', None)
     rewards = agent.rewards
+    agent2 = kwargs.get('a2', None)
+    rewards2 = agent2.rewards if agent2 else None
+    name2 = kwargs.get('n2', None)
+    agent3 = kwargs.get('a3', None)
+    rewards3 = agent3.rewards if agent3 else None
+    name3 = kwargs.get('n3', None)
+    agent4 = kwargs.get('a4', None)
+    rewards4 = agent4.rewards if agent4 else None
+    name4 = kwargs.get('n4', None)
+    print(test_type)
     match test_type:
         case "rand":
             plt.rcParams["figure.autolayout"] = True
@@ -51,14 +61,18 @@ def plot_agent_reward(agent, name, *args, **kwargs):
             ax2.set_xlabel('Training Games (per hundred)')
             ax2.legend(loc='center right')
             plt.show()
+        case "time":
+            x = np.array([name,name2,name3,name4])
+            print(x)
+            y = np.array([(agent.train_time/1000), (agent2.train_time/1000), (agent3.train_time/1000), (agent4.train_time/1000)])
+            plt.ylim((y.min() - (y.min()*.005)), (y.max() + (y.max()*.005)))
+            print(y)
+            plt.bar(x,y)
+            plt.title('Time to Train Per Agent')
+            plt.ylabel('Time (Seconds)')
+            plt.xlabel('Agent')
+            plt.show()
         case _:
-            rewards2 = kwargs.get('r2', None)
-            name2 = kwargs.get('n2', None)
-            rewards3 = kwargs.get('r3', None)
-            name3 = kwargs.get('n3', None)
-            rewards4 = kwargs.get('r4', None)
-            name4 = kwargs.get('n4', None)
-
             """ Function to plot agent's accumulated reward vs. iteration """
             plt.rcParams["figure.autolayout"] = True
             plt.subplot(223)
@@ -78,13 +92,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Plot agent reward.")
     parser.add_argument("-p", "--path", type=str, required=True)
     parser.add_argument("-n", "--name", type=str, required=True)
-    parser.add_argument("-t", "--test", type=str, required=False)
     parser.add_argument("-p2", "--path2", type=str, required=False)
     parser.add_argument("-n2", "--name2", type=str, required=False)
     parser.add_argument("-p3", "--path3", type=str, required=False)
     parser.add_argument("-n3", "--name3", type=str, required=False)
     parser.add_argument("-p4", "--path4", type=str, required=False)
     parser.add_argument("-n4", "--name4", type=str, required=False)
+    parser.add_argument("-t", "--test", type=str, required=False)
     args = parser.parse_args()
 
     if not os.path.isfile(args.path):
@@ -121,10 +135,10 @@ if __name__ == "__main__":
         agent4 = None
 
     if agent4 is not None:
-        plot_agent_reward(agent.rewards, args.name, r2=agent2.rewards, n2=args.name2, r3=agent3.rewards, n3=args.name3, r4=agent4.rewards, n4=args.name4)
+        plot_agent_reward(agent, args.name, a2=agent2, n2=args.name2, a3=agent3, n3=args.name3, a4=agent4, n4=args.name4, t=args.test)
     elif agent3 is not None:
-        plot_agent_reward(agent.rewards, args.name, r2=agent2.rewards, n2=args.name2, r3=agent3.rewards, n3=args.name3)
+        plot_agent_reward(agent, args.name, a2=agent2, n2=args.name2, a3=agent3, n3=args.name3)
     elif agent2 is not None:
-        plot_agent_reward(agent.rewards, args.name, r2=agent2.rewards, n2=args.name2)
+        plot_agent_reward(agent, args.name, a2=agent2, n2=args.name2)
     else:
         plot_agent_reward(agent, args.name, t=args.test)

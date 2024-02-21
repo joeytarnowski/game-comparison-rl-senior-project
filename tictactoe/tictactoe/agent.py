@@ -4,7 +4,6 @@ import pickle
 import collections
 import numpy as np
 import random
-import time
 
 
 class Learner(ABC):
@@ -28,7 +27,7 @@ class Learner(ABC):
         self.gamma = gamma
         self.eps = eps
         self.eps_decay = eps_decay
-        self.train_time = time.perf_counter()
+        self.train_time = 0
         self.num_wins, self.num_losses, self.num_draws = (0 for i in range(3))
         self.testing_results_rand = [[],[],[]]
         self.testing_results_opt = [[],[],[]]
@@ -168,8 +167,7 @@ class Qlearner(Learner):
         self.rewards.append(r)
 
     def end_update(self,r):
-        """ends timing"""
-        self.train_time = time.perf_counter() - self.train_time
+        _ = 0
 
 class SARSAlearner(Learner):
     """
@@ -207,8 +205,7 @@ class SARSAlearner(Learner):
         
 
     def end_update(self,r):
-        """ends timing"""
-        self.train_time = time.perf_counter() - self.train_time
+        _ = 0
 
 class MCOffPolicyLearner(Learner):
     """
@@ -272,8 +269,6 @@ class MCOffPolicyLearner(Learner):
                 break
             t += 1
 
-        """ends timing"""
-        self.train_time = time.perf_counter() - self.train_time
 
 class MCOnPolicyLearner(Learner):
     """
@@ -321,7 +316,5 @@ class MCOnPolicyLearner(Learner):
             self.Q[action][state] += self.alpha * (cum_reward - self.Q[action][state])
             t += 1
 
-        """ends timing"""
-        self.train_time = time.perf_counter() - self.train_time
         
 

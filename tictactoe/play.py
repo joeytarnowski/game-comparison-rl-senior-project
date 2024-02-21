@@ -2,10 +2,12 @@ import argparse
 import os
 import pickle
 import sys
+import time
 
 from tictactoe.agent import Qlearner, SARSAlearner, MCOffPolicyLearner, MCOnPolicyLearner
 from tictactoe.teacher import Teacher
 from tictactoe.game import Game
+from tictactoe.minimaxteacher import MMTeacher
 
 
 class GameLearning(object):
@@ -75,9 +77,12 @@ class GameLearning(object):
 
     def beginTeaching(self, episodes):
         """ Loop through game iterations with a teaching agent. """
-        teacher = Teacher()
+        train_time =  time.perf_counter()
+        teacher = MMTeacher()
         # Initial test
+        print("Running random test")
         self.runDiag(True)
+        print("Running optimal test")
         self.runDiag(False)
         # Train for alotted number of episodes
         while self.games_played < episodes:
@@ -87,11 +92,13 @@ class GameLearning(object):
             # Monitor progress
             if self.games_played % 100 == 0:
                 # Run random and optimal tests
+                print("Running random test")
                 self.runDiag(True)
+                print("Running optimal test")
                 self.runDiag(False)
-            if self.games_played % 1000 == 0:
+            if self.games_played % 10 == 0:
                 print("Games played: %i" % self.games_played)
-
+        self.agent.train_time = time.perf_counter() - train_time
         # save final agent
         self.agent.save(self.path)
         print(f"The agent won {self.agent.num_wins} times")
@@ -99,26 +106,34 @@ class GameLearning(object):
         print(f"The agent drew {self.agent.num_draws} times")
 
     def runDiag(self, is_rand):
+        with open('outputboard.txt', 'a') as f:
+            f.write(f'\nBEGIN TEST. RANDOM = {is_rand}\n')
+
         self.agent.save(self.path)
         i = 0
         self.agent.num_wins, self.agent.num_losses, self.agent.num_draws = (0 for i in range(3))
         self.agent.eps = 0
-        test_teacher = Teacher(0) if is_rand else Teacher(1.0)
-        while i < 1000:
+        test_teacher = MMTeacher(0) if is_rand else MMTeacher(1.0)
+        while i < 100:
             game = Game(self.agent, teacher=test_teacher)
             game.start()
             i += 1
+            if i % 10 == 0:
+                print(f"Test games: {i}")
         test_res = [self.agent.num_wins, self.agent.num_losses, self.agent.num_draws]
+        print(test_res)
         with open(args.path, 'rb') as f:
             self.agent = pickle.load(f)
         if is_rand:
             self.agent.testing_results_rand[0].append(test_res[0])
             self.agent.testing_results_rand[1].append(test_res[1])
             self.agent.testing_results_rand[2].append(test_res[2])
+            print(self.agent.testing_results_rand)
         else:
             self.agent.testing_results_opt[0].append(test_res[0])
             self.agent.testing_results_opt[1].append(test_res[1])
             self.agent.testing_results_opt[2].append(test_res[2])
+            print(self.agent.testing_results_opt)
 
 
 if __name__ == "__main__":

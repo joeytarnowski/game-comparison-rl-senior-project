@@ -32,6 +32,7 @@ class Game:
                     continue
                 self.board[row][col] = 'X'
                 break
+        
 
     def agentMove(self, action):
         """
@@ -194,6 +195,26 @@ def printBoard(board):
         for elt in row:
             print('%s   ' % elt, end='')
         print('\n')
+
+def writeBoard(board,key):
+    """
+    Prints the game board as text output to the terminal.
+
+    Parameters
+    ----------
+    board : list of lists
+        the current game board
+    """
+    with open('outputboard.txt', 'a') as f:
+        f.write(f'{key} Wins\n')
+        f.write('    0   1   2\n')
+        for i, row in enumerate(board):
+            f.write('%i   ' % i)
+            for elt in row:
+                f.write('%s   ' % elt)
+            f.write('\n')
+        f.write('\n')
+        f.write('\n')    
 
 def getStateKey(board):
     """
