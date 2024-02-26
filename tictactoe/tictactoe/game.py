@@ -152,7 +152,7 @@ class Game:
 
         # Game over. Perform final update
         self.agent.update(prev_state, None, prev_action, None, reward)
-        self.agent.end_update(reward)
+        self.agent.end_update()
 
     def start(self):
         """

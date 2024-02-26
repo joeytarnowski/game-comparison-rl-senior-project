@@ -16,7 +16,7 @@ class GameLearning(object):
     agents are created/loaded here, and a count is kept of the
     games that have been played.
     """
-    def __init__(self, args, alpha=0.5, gamma=0.9, epsilon=1):
+    def __init__(self, args, alpha=0.5, gamma=0.9, epsilon=1, overridecheck=False):
 
         if args.load:
             # load an existing agent and continue training
@@ -27,7 +27,7 @@ class GameLearning(object):
         else:
             # check if agent state file already exists, and ask
             # user whether to overwrite if so
-            if os.path.isfile(args.path):
+            if os.path.isfile(args.path) and overridecheck == False:
                 print('An agent is already saved at {}.'.format(args.path))
                 while True:
                     response = input("Are you sure you want to overwrite? [y/n]: ")
@@ -39,13 +39,13 @@ class GameLearning(object):
                     else:
                         print("Invalid input. Please choose 'y' or 'n'.")
             if args.agent_type == "q":
-                agent = Qlearner(alpha,gamma,epsilon,0.001)
+                agent = Qlearner(alpha,gamma,epsilon,0.0005)
             elif args.agent_type == "mcon":
-                agent = MCOnPolicyLearner(alpha,gamma,epsilon,0.001)
+                agent = MCOnPolicyLearner(alpha,gamma,epsilon,0.0005)
             elif args.agent_type == "mcoff":
-                agent = MCOffPolicyLearner(alpha,gamma,epsilon,0.001)
+                agent = MCOffPolicyLearner(alpha,gamma,epsilon,0.0005)
             else:
-                agent = SARSAlearner(alpha,gamma,epsilon,0.001)
+                agent = SARSAlearner(alpha,gamma,epsilon,0.0005)
 
         self.games_played = 0
         self.path = args.path
@@ -106,9 +106,6 @@ class GameLearning(object):
         print(f"The agent drew {self.agent.num_draws} times")
 
     def runDiag(self, is_rand):
-        with open('outputboard.txt', 'a') as f:
-            f.write(f'\nBEGIN TEST. RANDOM = {is_rand}\n')
-
         self.agent.save(self.path)
         i = 0
         self.agent.num_wins, self.agent.num_losses, self.agent.num_draws = (0 for i in range(3))
@@ -118,11 +115,9 @@ class GameLearning(object):
             game = Game(self.agent, teacher=test_teacher)
             game.start()
             i += 1
-            if i % 10 == 0:
-                print(f"Test games: {i}")
         test_res = [self.agent.num_wins, self.agent.num_losses, self.agent.num_draws]
         print(test_res)
-        with open(args.path, 'rb') as f:
+        with open(self.path, 'rb') as f:
             self.agent = pickle.load(f)
         if is_rand:
             self.agent.testing_results_rand[0].append(test_res[0])
@@ -135,6 +130,16 @@ class GameLearning(object):
             self.agent.testing_results_opt[2].append(test_res[2])
             print(self.agent.testing_results_opt)
 
+def initGame(args, override=False):
+    # initialize game instance
+    gl = GameLearning(args,overridecheck=override)
+    print(args)
+
+    # play or teach
+    if args.teacher_episodes is not None:
+        gl.beginTeaching(args.teacher_episodes)
+    else:
+        gl.beginPlaying()
 
 if __name__ == "__main__":
     # Parse command line arguments
@@ -158,6 +163,7 @@ if __name__ == "__main__":
                         help="employ teacher agent who knows the optimal "
                              "strategy and will play for TEACHER_EPISODES games")
     args = parser.parse_args()
+    print(args)
 
     # set default path
     if args.path is None:
@@ -170,12 +176,4 @@ if __name__ == "__main__":
                 args.path = 'mcoff_agent.pkl'
             case _:
                 args.path = 'sarsa_agent.pkl'
-
-    # initialize game instance
-    gl = GameLearning(args)
-
-    # play or teach
-    if args.teacher_episodes is not None:
-        gl.beginTeaching(args.teacher_episodes)
-    else:
-        gl.beginPlaying()
+    initGame(args)

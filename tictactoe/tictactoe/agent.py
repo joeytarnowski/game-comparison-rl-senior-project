@@ -39,6 +39,7 @@ class Learner(ABC):
         # Initialize Q values to 0 for all state-action pairs.
         # Access value for action a, state s via Q[a][s], and create C and target policy for MC off policy
         self.Q = {}
+        self.Qmcoff = {}
         self.C = {}
         for action in self.actions:
             self.Q[action] = collections.defaultdict(int)
@@ -166,7 +167,7 @@ class Qlearner(Learner):
         # add r to rewards list
         self.rewards.append(r)
 
-    def end_update(self,r):
+    def end_update(self):
         _ = 0
 
 class SARSAlearner(Learner):
@@ -204,7 +205,7 @@ class SARSAlearner(Learner):
         self.rewards.append(r)
         
 
-    def end_update(self,r):
+    def end_update(self):
         _ = 0
 
 class MCOffPolicyLearner(Learner):
@@ -249,7 +250,7 @@ class MCOffPolicyLearner(Learner):
             # store last move in trajectory
             self.target_trajectory.append(a)
 
-    def end_update(self, r):
+    def end_update(self):
         """
         Perform the Monte Carlo off-policy update of Q values.
 
@@ -258,16 +259,17 @@ class MCOffPolicyLearner(Learner):
         reward : int
             Reward received after completing the episode
         """
-        t = 0
+        t = len(self.trajectory) - 1
         # update Q table for full trajectory
-        for action, state in self.trajectory:
+        for action, state in self.trajectory [::-1]:
             reward = self.reward_cache[t]
             cum_reward = self.compute_cum_rewards(self.gamma, t, self.reward_cache) + reward
             self.C[action][state] += self.alpha
             self.Q[action][state] += (cum_reward - self.Q[action][state]) * (self.alpha/self.C[action][state])
             if action not in self.target_trajectory[t]:
                 break
-            t += 1
+            t -= 1
+
 
 
 class MCOnPolicyLearner(Learner):
@@ -299,7 +301,7 @@ class MCOnPolicyLearner(Learner):
         self.trajectory.append([a,s])
                 
 
-    def end_update(self, r):
+    def end_update(self):
         """
         Perform the Monte Carlo update of Q values.
 
@@ -308,7 +310,7 @@ class MCOnPolicyLearner(Learner):
         reward : int
             Reward received after completing the episode
         """
-        t = 0
+        t = self.trajectory.length
         # update Q table for full trajectory
         for action, state in self.trajectory:
             reward = self.reward_cache[t]

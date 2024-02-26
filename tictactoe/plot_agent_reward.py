@@ -63,10 +63,8 @@ def plot_agent_reward(agent, name, *args, **kwargs):
             plt.show()
         case "time":
             x = np.array([name,name2,name3,name4])
-            print(x)
-            y = np.array([(agent.train_time/1000), (agent2.train_time/1000), (agent3.train_time/1000), (agent4.train_time/1000)])
-            plt.ylim((y.min() - (y.min()*.005)), (y.max() + (y.max()*.005)))
-            print(y)
+            y = np.array([agent.train_time, agent2.train_time, agent3.train_time, agent4.train_time])
+            plt.ylim((y.min() - (y.min()*.05)), (y.max() + (y.max()*.05)))
             plt.bar(x,y)
             plt.title('Time to Train Per Agent')
             plt.ylabel('Time (Seconds)')
@@ -75,7 +73,6 @@ def plot_agent_reward(agent, name, *args, **kwargs):
         case _:
             """ Function to plot agent's accumulated reward vs. iteration """
             plt.rcParams["figure.autolayout"] = True
-            plt.subplot(223)
             plt.plot(np.cumsum(rewards), label=name)
             plt.plot(np.cumsum(rewards2), label=name2)
             plt.plot(np.cumsum(rewards3), label=name3)
@@ -83,7 +80,7 @@ def plot_agent_reward(agent, name, *args, **kwargs):
             plt.title('Agent Cumulative Reward vs. Iteration')
             plt.ylabel('Reward')
             plt.xlabel('Episode')
-            plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+            plt.legend()
             plt.show()
 
 
