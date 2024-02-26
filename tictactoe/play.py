@@ -7,7 +7,7 @@ import time
 from tictactoe.agent import Qlearner, SARSAlearner, MCOffPolicyLearner, MCOnPolicyLearner
 from tictactoe.teacher import Teacher
 from tictactoe.game import Game
-from tictactoe.minimaxteacher import MMTeacher
+from tictactoe.dictteacher import Teacher
 
 
 class GameLearning(object):
@@ -17,6 +17,7 @@ class GameLearning(object):
     games that have been played.
     """
     def __init__(self, args, alpha=0.5, gamma=0.9, epsilon=1, overridecheck=False):
+        self.eps_decay = 0.0001
 
         if args.load:
             # load an existing agent and continue training
@@ -39,13 +40,13 @@ class GameLearning(object):
                     else:
                         print("Invalid input. Please choose 'y' or 'n'.")
             if args.agent_type == "q":
-                agent = Qlearner(alpha,gamma,epsilon,0.0005)
+                agent = Qlearner(alpha,gamma,epsilon,self.eps_decay)
             elif args.agent_type == "mcon":
-                agent = MCOnPolicyLearner(alpha,gamma,epsilon,0.0005)
+                agent = MCOnPolicyLearner(alpha,gamma,epsilon,self.eps_decay)
             elif args.agent_type == "mcoff":
-                agent = MCOffPolicyLearner(alpha,gamma,epsilon,0.0005)
+                agent = MCOffPolicyLearner(alpha,gamma,epsilon,self.eps_decay)
             else:
-                agent = SARSAlearner(alpha,gamma,epsilon,0.0005)
+                agent = SARSAlearner(alpha,gamma,epsilon,self.eps_decay)
 
         self.games_played = 0
         self.path = args.path
@@ -78,11 +79,9 @@ class GameLearning(object):
     def beginTeaching(self, episodes):
         """ Loop through game iterations with a teaching agent. """
         train_time =  time.perf_counter()
-        teacher = MMTeacher()
+        teacher = Teacher()
         # Initial test
-        print("Running random test")
         self.runDiag(True)
-        print("Running optimal test")
         self.runDiag(False)
         # Train for alotted number of episodes
         while self.games_played < episodes:
@@ -92,11 +91,9 @@ class GameLearning(object):
             # Monitor progress
             if self.games_played % 100 == 0:
                 # Run random and optimal tests
-                print("Running random test")
                 self.runDiag(True)
-                print("Running optimal test")
                 self.runDiag(False)
-            if self.games_played % 10 == 0:
+            if self.games_played % 1000 == 0:
                 print("Games played: %i" % self.games_played)
         self.agent.train_time = time.perf_counter() - train_time
         # save final agent
@@ -110,25 +107,22 @@ class GameLearning(object):
         i = 0
         self.agent.num_wins, self.agent.num_losses, self.agent.num_draws = (0 for i in range(3))
         self.agent.eps = 0
-        test_teacher = MMTeacher(0) if is_rand else MMTeacher(1.0)
+        test_teacher = Teacher(0) if is_rand else Teacher(1.0)
         while i < 100:
             game = Game(self.agent, teacher=test_teacher)
             game.start()
             i += 1
         test_res = [self.agent.num_wins, self.agent.num_losses, self.agent.num_draws]
-        print(test_res)
         with open(self.path, 'rb') as f:
             self.agent = pickle.load(f)
         if is_rand:
             self.agent.testing_results_rand[0].append(test_res[0])
             self.agent.testing_results_rand[1].append(test_res[1])
             self.agent.testing_results_rand[2].append(test_res[2])
-            print(self.agent.testing_results_rand)
         else:
             self.agent.testing_results_opt[0].append(test_res[0])
             self.agent.testing_results_opt[1].append(test_res[1])
             self.agent.testing_results_opt[2].append(test_res[2])
-            print(self.agent.testing_results_opt)
 
 def initGame(args, override=False):
     # initialize game instance

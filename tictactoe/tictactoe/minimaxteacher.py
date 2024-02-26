@@ -1,6 +1,4 @@
 import random
-from multiprocessing import Pool
-from multiprocessing import freeze_support
 from copy import deepcopy
 
 
@@ -19,7 +17,7 @@ class MMTeacher:
         probability of making the optimal move at any given time.
     """
 
-    def __init__(self, level=0.9):
+    def __init__(self, level=1):
         """
         Ability level determines the probability that the teacher will follow
         the optimal strategy as opposed to choosing a random available move.
@@ -54,7 +52,7 @@ class MMTeacher:
     def minimax(self, current_board, depth, is_maxim, alpha, beta):
         board = current_board
         if self.win(board):
-            return 10 + depth
+            return 10 - depth
         elif self.win(board, 'O'):
             return -10 + depth
 
@@ -130,7 +128,6 @@ class MMTeacher:
         board[i[0]][i[1]] = "X"
         move_val = self.minimax(board, 0, False, 0, 0)
         board[i[0]][i[1]] = "-"
-
         return [(i[0],i[1]), move_val]
     
 

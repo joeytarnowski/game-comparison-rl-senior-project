@@ -310,7 +310,7 @@ class MCOnPolicyLearner(Learner):
         reward : int
             Reward received after completing the episode
         """
-        t = self.trajectory.length
+        t = 0
         # update Q table for full trajectory
         for action, state in self.trajectory:
             reward = self.reward_cache[t]
