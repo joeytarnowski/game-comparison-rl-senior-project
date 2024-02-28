@@ -4,9 +4,7 @@ class Teacher:
     """ 
     A class to implement a teacher that knows the optimal playing strategy.
     Teacher returns the best move at any time given the current state of the game.
-    Note: things are a bit more hard-coded here, as this was not the main focus of
-    the exercise so I did not spend as much time on design/style. Everything works
-    properly when tested.
+    Note: NOW OBSOLETE - Use minimax or dict teacher from now on
 
     Parameters
     ----------

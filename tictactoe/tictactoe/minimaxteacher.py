@@ -4,11 +4,9 @@ from copy import deepcopy
 
 class MMTeacher:
     """ 
-    A class to implement a teacher that knows the optimal playing strategy.
+    A class to implement a teacher that knows the optimal playing strategy via MinMax.
     Teacher returns the best move at any time given the current state of the game.
-    Note: things are a bit more hard-coded here, as this was not the main focus of
-    the exercise so I did not spend as much time on design/style. Everything works
-    properly when tested.
+
 
     Parameters
     ----------
@@ -59,7 +57,7 @@ class MMTeacher:
         if self.draw(board):
             return 0
         
-            # Maximizer
+        # Maximizer
         if (is_maxim) :    
             best = -1000
             possibles = self.getMoves(board)

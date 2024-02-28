@@ -5,9 +5,9 @@ class Teacher:
     """ 
     A class to implement a teacher that knows the optimal playing strategy.
     Teacher returns the best move at any time given the current state of the game.
-    Note: things are a bit more hard-coded here, as this was not the main focus of
-    the exercise so I did not spend as much time on design/style. Everything works
-    properly when tested.
+    Note: this is based off the MinMax algorithm in minimaxteacher.py - all potential
+    board states are stored in minimax_table.pkl and the 9 character board key is used
+    to look up the optimal move
 
     Parameters
     ----------
@@ -23,7 +23,7 @@ class Teacher:
         """
         self.ability_level = level
         self.begin_board = []
-        # Load data (deserialize)
+        # Load data
         with open('minimax_table.pkl', 'rb') as handle:
             self.moves_dict = pickle.load(handle)
 
