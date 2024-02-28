@@ -4,11 +4,14 @@ import pickle
 import sys
 import time
 
-from tictactoe.agent import Qlearner, SARSAlearner, MCOffPolicyLearner, MCOnPolicyLearner
-from tictactoe.teacher import Teacher
-from tictactoe.game import Game
-from tictactoe.dictteacher import Teacher
+from checkers.agent import Qlearner, SARSAlearner, MCOffPolicyLearner, MCOnPolicyLearner
+from checkers.teacher import Teacher
+from checkers.game import Game
+from checkers.teacher import Teacher
 
+"""
+NOTE TO SELF: UPDATE THIS FOR CHECKERS
+"""
 
 class GameLearning(object):
     """
