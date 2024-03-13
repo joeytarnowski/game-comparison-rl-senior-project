@@ -1,3 +1,9 @@
+'''
+Created on Feb 1, 2024
+
+@author: Joey Tarnowski
+Based on code by Reuben Feinman
+'''
 from abc import ABC, abstractmethod
 import os
 import pickle
@@ -8,7 +14,7 @@ import random
 
 class Learner(ABC):
     """
-    Parent class for Q-learning and SARSA agents.
+    Parent class for RL agents.
 
     Parameters
     ----------
@@ -39,7 +45,6 @@ class Learner(ABC):
         # Initialize Q values to 0 for all state-action pairs.
         # Access value for action a, state s via Q[a][s], and create C and target policy for MC off policy
         self.Q = {}
-        self.Qmcoff = {}
         self.C = {}
         for action in self.actions:
             self.Q[action] = collections.defaultdict(int)
@@ -49,6 +54,7 @@ class Learner(ABC):
         
     
     def ep_init(self):
+        # Only used for MC agents
         self.trajectory = []
         self.target_trajectory = []
         self.reward_cache = []

@@ -4,14 +4,10 @@ import pickle
 import sys
 import time
 
-from checkers.agent import Qlearner, SARSAlearner, MCOffPolicyLearner, MCOnPolicyLearner
-from checkers.teacher import Teacher
-from checkers.game import Game
-from checkers.teacher import Teacher
+from checkerstools.agent import Qlearner, SARSAlearner, MCOffPolicyLearner, MCOnPolicyLearner
+from checkerstools.teacher import Alpha_beta as Teacher
+from checkerstools.game import Game
 
-"""
-NOTE TO SELF: UPDATE THIS FOR CHECKERS
-"""
 
 class GameLearning(object):
     """
@@ -57,7 +53,6 @@ class GameLearning(object):
 
     def beginPlaying(self):
         """ Loop through game iterations with a human player. """
-        print("Welcome to Tic-Tac-Toe. You are 'X' and the computer is 'O'.")
 
         def play_again():
             print("Games played: %i" % self.games_played)
@@ -84,19 +79,21 @@ class GameLearning(object):
         train_time =  time.perf_counter()
         teacher = Teacher()
         # Initial test
-        self.runDiag(True)
-        self.runDiag(False)
+        #self.runDiag(True)
+        #self.runDiag(False)
         # Train for alotted number of episodes
         while self.games_played < episodes:
             game = Game(self.agent, teacher=teacher)
             game.start()
             self.games_played += 1
             # Monitor progress
+            """
             if self.games_played % 100 == 0:
                 # Run random and optimal tests
                 self.runDiag(True)
                 self.runDiag(False)
-            if self.games_played % 1000 == 0:
+            """
+            if self.games_played % 1 == 0:
                 print("Games played: %i" % self.games_played)
         self.agent.train_time = time.perf_counter() - train_time
         # save final agent

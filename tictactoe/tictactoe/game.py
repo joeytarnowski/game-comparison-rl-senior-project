@@ -1,5 +1,11 @@
-import random
+'''
+Created on Jan 29, 2024
 
+@author: Joey Tarnowski
+Based on code by Reuben Feinman
+'''
+
+import random
 
 class Game:
     """ The game class. New instance created for each new game. """
@@ -148,7 +154,6 @@ class Game:
             # reset "previous" values
             prev_state = new_state
             prev_action = new_action
-            # append reward
 
         # Game over. Perform final update
         self.agent.update(prev_state, None, prev_action, None, reward)
