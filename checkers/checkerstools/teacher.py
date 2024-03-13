@@ -99,13 +99,11 @@ class Alpha_beta(Teacher):
     def save_moves_dict(self, filename = None):
         # Store data (serialize)
         if filename is None:
-            if os.path.isfile('checkers_table.pkl'):
-                with open('checkers_table.pkl', 'wb') as handle:
-                    pickle.dump(self.moves_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            with open('checkers_table.pkl', 'wb') as handle:
+                pickle.dump(self.moves_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
         else:
-            if os.path.isfile(filename):
-                with open(filename, 'wb') as handle:
-                    pickle.dump(self.moves_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            with open(filename, 'wb') as handle:
+                pickle.dump(self.moves_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
     
     def load_moves_dict(self, filename = None):
         # Load data (deserialize)
@@ -191,8 +189,11 @@ class Alpha_beta(Teacher):
             return possible_actions[random.randint(0,len(possible_actions)-1)]
         if self.board_key not in self.moves_dict:
             self.moves_dict[self.board_key] = self.alpha_beta(self.board, self.depth, float('-inf'), float('inf'), self.player_id)[1]
+        else:
+            print(f"Teacher selected pre-calculated move for board: {self.board_key}")
         return self.moves_dict[self.board_key]
  
+
     def get_symbol(self, location):
         """
         Gets the symbol for what should be at a board location.

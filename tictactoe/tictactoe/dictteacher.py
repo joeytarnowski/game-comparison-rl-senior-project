@@ -62,5 +62,3 @@ class Teacher:
         move_key = self.makeKey(current_board)
         best_move = self.moves_dict[move_key]
         return best_move
-
-    

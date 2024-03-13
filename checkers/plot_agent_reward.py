@@ -70,6 +70,57 @@ def plot_agent_reward(agent, name, *args, **kwargs):
             plt.ylabel('Time (Seconds)')
             plt.xlabel('Agent')
             plt.show()
+        case "totalrand":
+            names = (name,name2,name3,name4)
+            agent_data_rand = {
+                'Wins': (sum(agent.testing_results_rand[0]), sum(agent2.testing_results_rand[0]), sum(agent3.testing_results_rand[0]), sum(agent4.testing_results_rand[0])),
+                'Losses': (sum(agent.testing_results_rand[1]), sum(agent2.testing_results_rand[1]), sum(agent3.testing_results_rand[1]), sum(agent4.testing_results_rand[1])),
+                'Draws': (sum(agent.testing_results_rand[2]), sum(agent2.testing_results_rand[2]), sum(agent3.testing_results_rand[2]), sum(agent4.testing_results_rand[2]))
+            }
+            x = np.arange(len(names))  # the label locations
+            width = 0.25  # the width of the bars
+            multiplier = 0
+
+            fig, ax = plt.subplots(layout='constrained')
+
+            for result, num in agent_data_rand.items():
+                offset = width * multiplier
+                rects = ax.bar(x + offset, num, width, label=result)
+                ax.bar_label(rects, padding=3)
+                multiplier += 1
+            ax.set_ylim((min(agent_data_rand['Draws']) - (min(agent_data_rand['Draws'])*.05)), (max(agent_data_rand['Wins']) + (max(agent_data_rand['Wins'])*.05)))
+            # Add some text for labels, title and custom x-axis tick labels, etc.
+            ax.set_ylabel('Number of Games')
+            ax.set_title('Win/Loss/Draw Results vs Random Moves')
+            ax.set_xticks(x + width, names)
+            ax.legend(loc='upper left', ncols=3)
+
+            plt.show()
+        case "totalopt":
+            names = (name,name2,name3,name4)
+            agent_data_opt = {
+                'Losses': (sum(agent.testing_results_opt[1]), sum(agent2.testing_results_opt[1]), sum(agent3.testing_results_opt[1]), sum(agent4.testing_results_opt[1])),
+                'Draws': (sum(agent.testing_results_opt[2]), sum(agent2.testing_results_opt[2]), sum(agent3.testing_results_opt[2]), sum(agent4.testing_results_opt[2]))
+            } 
+            x = np.arange(len(names))  # the label locations
+            width = 0.25  # the width of the bars
+            multiplier = 0
+
+            fig, ax = plt.subplots(layout='constrained')
+
+            for result, num in agent_data_opt.items():
+                offset = width * multiplier
+                rects = ax.bar(x + offset, num, width, label=result)
+                ax.bar_label(rects, padding=3)
+                multiplier += 1
+            ax.set_ylim(0, (max(agent_data_opt['Draws']) + (max(agent_data_opt['Draws'])*.05)))
+            # Add some text for labels, title and custom x-axis tick labels, etc.
+            ax.set_ylabel('Number of Games')
+            ax.set_title('Win/Loss/Draw Results vs Optimal Moves')
+            ax.set_xticks(x + width, names)
+            ax.legend(loc='upper left', ncols=2)
+
+            plt.show()
         case _:
             """ Function to plot agent's accumulated reward vs. iteration """
             plt.rcParams["figure.autolayout"] = True

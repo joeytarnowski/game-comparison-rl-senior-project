@@ -142,6 +142,8 @@ class Qlearner(Learner):
             new action. NOT used by Q-learner!
         r : int
             reward received after executing action "a" in state "s"
+        possible_actions : list
+            list of possible actions from state "s".
         """
         a = tuple([tuple(a[0]), tuple(a[1])])
         # Update Q(s,a)
@@ -163,7 +165,7 @@ class Qlearner(Learner):
 
 class SARSAlearner(Learner):
     """
-    A class to implement the Q-learning agent.
+    A class to implement the SARSA agent.
     """
     def __init__(self, alpha, gamma, eps, eps_decay=0.):
         super().__init__(alpha, gamma, eps, eps_decay)
@@ -171,7 +173,7 @@ class SARSAlearner(Learner):
 
     def update(self, s, s_, a, a_, r, possible_actions):
         """
-        Perform the Q-Learning update of Q values.
+        Perform the SARSA update of Q values.
 
         Parameters
         ----------
@@ -182,59 +184,16 @@ class SARSAlearner(Learner):
         a : (i,j) tuple
             previous action
         a_ : (i,j) tuple
-            new action. NOT used by Q-learner!
+            new action
         r : int
             reward received after executing action "a" in state "s"
+        possible_actions : list
+            list of possible actions from state "s". NOT USED WITH ON-POLICY AGENT
         """
+        a = tuple([tuple(a[0]), tuple(a[1])])
         # Update Q(s,a)
         if s_ is not None:
-            # hold list of Q values for all a_,s_ pairs. We will access the max later
-            Q_options = [self.Q[s_][action] for action in possible_actions]
-            
-            # update
-            self.Q[s][a] += self.alpha*(r + self.gamma*max(Q_options) - self.Q[s][a])
-        else:
-            # terminal state update
-            self.Q[s][a] += self.alpha*(r - self.Q[s][a])
-
-        # add r to rewards list
-        self.rewards.append(r)
-
-    def end_update(self):
-        _ = 0
-
-class MCOnPolicyLearner(Learner):
-    """
-    A class to implement the Q-learning agent.
-    """
-    def __init__(self, alpha, gamma, eps, eps_decay=0.):
-        super().__init__(alpha, gamma, eps, eps_decay)
-    
-
-    def update(self, s, s_, a, a_, r, possible_actions):
-        """
-        Perform the Q-Learning update of Q values.
-
-        Parameters
-        ----------
-        s : string
-            previous state
-        s_ : string
-            new state
-        a : (i,j) tuple
-            previous action
-        a_ : (i,j) tuple
-            new action. NOT used by Q-learner!
-        r : int
-            reward received after executing action "a" in state "s"
-        """
-        # Update Q(s,a)
-        if s_ is not None:
-            # hold list of Q values for all a_,s_ pairs. We will access the max later
-            Q_options = [self.Q[s_][action] for action in possible_actions]
-            
-            # update
-            self.Q[s][a] += self.alpha*(r + self.gamma*max(Q_options) - self.Q[s][a])
+            self.Q[s][a] += self.alpha*(r + self.gamma*self.Q[s_][a_] - self.Q[s][a])
         else:
             # terminal state update
             self.Q[s][a] += self.alpha*(r - self.Q[s][a])
@@ -247,42 +206,111 @@ class MCOnPolicyLearner(Learner):
 
 class MCOffPolicyLearner(Learner):
     """
-    A class to implement the Q-learning agent.
-    """
+    A class to implement the Monte Carlo Off Policy agent.
+    """    
     def __init__(self, alpha, gamma, eps, eps_decay=0.):
         super().__init__(alpha, gamma, eps, eps_decay)
-    
 
     def update(self, s, s_, a, a_, r, possible_actions):
         """
-        Perform the Q-Learning update of Q values.
+        Perform the Monte Carlo update of *trajectory*.
 
         Parameters
         ----------
         s : string
             previous state
         s_ : string
-            new state
+            new state. NOT USED
         a : (i,j) tuple
             previous action
         a_ : (i,j) tuple
-            new action. NOT used by Q-learner!
+            new action.
         r : int
             reward received after executing action "a" in state "s"
+        possible_actions : list
+            list of possible actions from state "s".
         """
-        # Update Q(s,a)
+        a = tuple([tuple(a[0]), tuple(a[1])])
+        self.reward_cache.append(r)
+        self.rewards.append(r)
+        self.trajectory.append([s,a])
         if s_ is not None:
             # hold list of Q values for all a_,s_ pairs. We will access the max later
-            Q_options = [self.Q[s_][action] for action in possible_actions]
-            
-            # update
-            self.Q[s][a] += self.alpha*(r + self.gamma*max(Q_options) - self.Q[s][a])
+            Q_options = [self.Q[s_][tuple([tuple(action[0]), tuple(action[1])])] for action in possible_actions]
+            # update target trajectory
+            max_Q = max(Q_options)
+            traj = []
+            for i in range(len(Q_options)):
+                if Q_options[i] == max_Q:
+                    traj.append(possible_actions[i])
+            self.target_trajectory.append(traj)
         else:
-            # terminal state update
-            self.Q[s][a] += self.alpha*(r - self.Q[s][a])
-
-        # add r to rewards list
-        self.rewards.append(r)
+            # store last move in trajectory
+            self.target_trajectory.append(a)
 
     def end_update(self):
-        _ = 0
+        """
+        Perform the Monte Carlo off-policy update of Q values.
+        """
+        t = len(self.trajectory) - 1
+        # update Q table for full trajectory
+        for action, state in self.trajectory [::-1]:
+            action = tuple([tuple(action[0]), tuple(action[1])])
+            reward = self.reward_cache[t]
+            cum_reward = self.compute_cum_rewards(self.gamma, t, self.reward_cache) + reward
+            self.C[state][action] += self.alpha
+            self.Q[state][action] += (cum_reward - self.Q[state][action]) * (self.alpha/self.C[state][action])
+            if action not in self.target_trajectory[t]:
+                break
+            t -= 1
+
+
+class MCOnPolicyLearner(Learner):
+    """
+    A class to implement the Monte Carlo On Policy agent.
+    """    
+    def __init__(self, alpha, gamma, eps, eps_decay=0.):
+        super().__init__(alpha, gamma, eps, eps_decay)
+
+    def update(self, s, s_, a, a_, r, possible_actions):
+        """
+        Perform the Monte Carlo update of *trajectory*.
+
+        Parameters
+        ----------
+        s : string
+            previous state
+        s_ : string
+            new state. NOT USED
+        a : (i,j) tuple
+            previous action
+        a_ : (i,j) tuple
+            new action. NOT USED
+        r : int
+            reward received after executing action "a" in state "s"
+        possible_actions : list
+            list of possible actions from state "s". NOT USED WITH ON-POLICY AGENT
+        """
+        a = tuple([tuple(a[0]), tuple(a[1])])
+        self.reward_cache.append(r)
+        self.rewards.append(r)
+        self.trajectory.append([s,a])
+                
+
+    def end_update(self):
+        """
+        Perform the Monte Carlo update of Q values.
+
+        Parameters
+        ----------
+        reward : int
+            Reward received after completing the episode
+        """
+        t = 0
+        # update Q table for full trajectory
+        for action, state in self.trajectory:
+            action = tuple([tuple(action[0]), tuple(action[1])])
+            reward = self.reward_cache[t]
+            cum_reward = self.compute_cum_rewards(self.gamma, t, self.reward_cache) + reward
+            self.Q[state][action] += self.alpha * (cum_reward - self.Q[state][action])
+            t += 1
