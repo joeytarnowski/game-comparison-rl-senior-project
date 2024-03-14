@@ -79,20 +79,19 @@ class GameLearning(object):
         train_time =  time.perf_counter()
         teacher = Teacher()
         # Initial test
-        #self.runDiag(True)
-        #self.runDiag(False)
+        self.runDiag(True)
+        self.runDiag(False)
         # Train for alotted number of episodes
         while self.games_played < episodes:
             game = Game(self.agent, teacher=teacher)
             game.start()
             self.games_played += 1
             # Monitor progress
-            """
-            if self.games_played % 100 == 0:
+            if self.games_played % 10 == 0:
                 # Run random and optimal tests
                 self.runDiag(True)
                 self.runDiag(False)
-            """
+            
             if self.games_played % 1 == 0:
                 print("Games played: %i" % self.games_played)
         self.agent.train_time = time.perf_counter() - train_time
@@ -108,7 +107,7 @@ class GameLearning(object):
         self.agent.num_wins, self.agent.num_losses, self.agent.num_draws = (0 for i in range(3))
         self.agent.eps = 0
         test_teacher = Teacher(0) if is_rand else Teacher(1.0)
-        while i < 100:
+        while i < 10:
             game = Game(self.agent, teacher=test_teacher)
             game.start()
             i += 1

@@ -477,16 +477,17 @@ class Game:
             new_possible_actions = self.get_possible_next_moves()
             try:
                 new_action = self.agent.get_action(new_state, new_possible_actions)
+                # update Q-values
+                self.agent.update(prev_state, new_state, prev_action, new_action, reward, new_possible_actions)
+                # reset "previous" values
+                prev_state = new_state
+                prev_action = new_action
+                possible_actions = new_possible_actions
             except ValueError:
                 self.print_board()
-                print("new_state: ", new_state)
-                print("new_possible_actions: ", new_possible_actions)  
-            # update Q-values
-            self.agent.update(prev_state, new_state, prev_action, new_action, reward, new_possible_actions)
-            # reset "previous" values
-            prev_state = new_state
-            prev_action = new_action
-            possible_actions = new_possible_actions
+                print("new_state:", new_state)  
+                reward = -100
+                break
             self.total_moves += 1
             if self.total_moves % 10 == 0:
                 print("Total moves: ", self.total_moves)
@@ -495,6 +496,7 @@ class Game:
         self.agent.update(prev_state, None, prev_action, None, reward, possible_actions)
         self.agent.end_update()
         self.teacher.save_moves_dict()
+        self.print_board()
         print(f"Game over. Total moves: {self.total_moves}")
 
 

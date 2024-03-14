@@ -189,8 +189,6 @@ class Alpha_beta(Teacher):
             return possible_actions[random.randint(0,len(possible_actions)-1)]
         if self.board_key not in self.moves_dict:
             self.moves_dict[self.board_key] = self.alpha_beta(self.board, self.depth, float('-inf'), float('inf'), self.player_id)[1]
-        else:
-            print(f"Teacher selected pre-calculated move for board: {self.board_key}")
         return self.moves_dict[self.board_key]
  
 

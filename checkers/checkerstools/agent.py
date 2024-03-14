@@ -193,6 +193,7 @@ class SARSAlearner(Learner):
         a = tuple([tuple(a[0]), tuple(a[1])])
         # Update Q(s,a)
         if s_ is not None:
+            a_ = tuple([tuple(a_[0]), tuple(a_[1])])
             self.Q[s][a] += self.alpha*(r + self.gamma*self.Q[s_][a_] - self.Q[s][a])
         else:
             # terminal state update
@@ -254,11 +255,16 @@ class MCOffPolicyLearner(Learner):
         """
         t = len(self.trajectory) - 1
         # update Q table for full trajectory
-        for action, state in self.trajectory [::-1]:
+        for state, action in self.trajectory [::-1]:
             action = tuple([tuple(action[0]), tuple(action[1])])
             reward = self.reward_cache[t]
             cum_reward = self.compute_cum_rewards(self.gamma, t, self.reward_cache) + reward
-            self.C[state][action] += self.alpha
+            try:
+                self.C[state][action] += self.alpha
+            except KeyError:
+                if self.C.get(state) is None:
+                    self.C[state] = {}
+                self.C[state][action] = self.alpha
             self.Q[state][action] += (cum_reward - self.Q[state][action]) * (self.alpha/self.C[state][action])
             if action not in self.target_trajectory[t]:
                 break
@@ -308,9 +314,12 @@ class MCOnPolicyLearner(Learner):
         """
         t = 0
         # update Q table for full trajectory
-        for action, state in self.trajectory:
+        for state, action in self.trajectory:
             action = tuple([tuple(action[0]), tuple(action[1])])
             reward = self.reward_cache[t]
             cum_reward = self.compute_cum_rewards(self.gamma, t, self.reward_cache) + reward
-            self.Q[state][action] += self.alpha * (cum_reward - self.Q[state][action])
+            try:
+                self.Q[state][action] += self.alpha * (cum_reward - self.Q[state][action])
+            except KeyError:
+                self.Q[state][action] = self.alpha * (cum_reward - self.Q[state][action])
             t += 1
