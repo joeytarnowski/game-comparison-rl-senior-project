@@ -115,4 +115,4 @@ To get both above plots for a single agent simultaneously:
 #### Time to train 4 agents
 To view the total time to train each agent (currently only works with exactly 4 agents):
 
-    python plot_agent_reward.py -p q_agent.pkl -n "Q-Learning" -p2 sarsa_agent.pkl -n2 "SARSA" -p3 mcon_agent.pkl -n3 "MC On-Policy" -p4 mcoff_agent.pkl -n4 "MC Off-Policy" -t -time
+    python plot_agent_reward.py -p q_agent.pkl -n "Q-Learning" -p2 sarsa_agent.pkl -n2 "SARSA" -p3 mcon_agent.pkl -n3 "MC On-Policy" -p4 mcoff_agent.pkl -n4 "MC Off-Policy" -t time
