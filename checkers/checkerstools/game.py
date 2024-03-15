@@ -453,17 +453,17 @@ class Game:
             if check != 0:
                 self.agent.update_count("win" if check == 2 else "draw")
                 reward = 100 if check == 2 else 0
-                print("Reward: ", reward)
                 break
             try:
                 self.player_move()
-            except ValueError:
+            except TypeError:
                 self.print_board()
+                reward = 100
+                break
             check = self.get_outcome()
             if not check == 0:
                 self.agent.update_count("loss" if check == 1 else "draw")
                 reward = -100 if check == 1 else 0
-                print("Reward: ", reward)
                 break
             else:
                 # game continues
@@ -484,19 +484,16 @@ class Game:
                 prev_action = new_action
                 possible_actions = new_possible_actions
             except ValueError:
-                self.print_board()
                 print("new_state:", new_state)  
                 reward = -100
                 break
             self.total_moves += 1
-            if self.total_moves % 10 == 0:
-                print("Total moves: ", self.total_moves)
 
         # Game over. Perform final update
         self.agent.update(prev_state, None, prev_action, None, reward, possible_actions)
         self.agent.end_update()
         self.teacher.save_moves_dict()
-        self.print_board()
+        print("Reward: ", reward)
         print(f"Game over. Total moves: {self.total_moves}")
 
 
