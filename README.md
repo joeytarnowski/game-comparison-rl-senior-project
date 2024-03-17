@@ -16,6 +16,7 @@ agent as well as key tools for obtaining board state information. His alpha-beta
 also was the basis for the checkers teacher algorithm.
 
 You can find both these projects here:
+
 https://github.com/rfeinman/tictactoe-reinforcement-learning/tree/master
 https://github.com/SamRagusa/Checkers-Reinforcement-Learning
 
@@ -115,6 +116,7 @@ To view the total results across 4 agents (currently only works with exactly 4 a
 
 #### Win/Loss/Draw vs Optimal Opponent
 *NOTE: For tictactoe, only losses/draws are displayed because the agent cannot win vs the optimal opponent
+
 To view a plot of an agent's performance throughout training against an optimal opponent (line chart):
 
     python plot_agent_reward.py -p q_agent.pkl -n "Q-Learning" -t opt
