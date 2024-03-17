@@ -1,35 +1,51 @@
-# Tic-Tac-Toe with Reinforcement Learning
-This is a repository for training an AI agent to play Tic-tac-toe using reinforcement learning. Both the SARSA and Q-learning RL algorithms are implemented. A user may teach the agent themself by playing against it or apply an automated teacher agent. 
+# Board Games with Reinforcement Learning
+This is a repository for training an AI agent to play Tic-tac-toe and Checkers using reinforcement learning. Q-Learning, SARSA, Monte Carlo Off-Policy, and Monte Carlo On-Policy are implemented. A user may teach the agent themself by playing against it or apply an automated teacher agent. 
+
+## Sources/Contributions
+
+This project is based off/builds on similar projects by Sam Rasgusa and Reuben Feinman. 
+Thank you to both of them, their repositories were essential in creating this project. 
+
+Feinman's repository makes up a significant portion of the tictactoe section, providing 
+much of the game.py and play.py code, a version of the total rewards graph, and the 
+Q-Learning and SARSA agents. This project also served as the model for much of the
+checkers portion of the project.
+
+Rasgusa's repository provided much of the checkers environment that is used for each
+agent as well as key tools for obtaining board state information. His alpha-beta AI 
+also was the basis for the checkers teacher algorithm.
+
+You can find both these projects here:
+https://github.com/rfeinman/tictactoe-reinforcement-learning/tree/master
+https://github.com/SamRagusa/Checkers-Reinforcement-Learning
 
 ## Code Structure
 
 #### Source Code
 
-The directory `tictactoe` contains the core source code for this project.
-There are 3 main source code files:
-1. game.py
-2. agent.py
-3. dictteacher.py
-
-This portion of the project contains four total RL agents to play tictactoe.
-There were two agents already created by Reuben Feinman:
-one follows the SARSA algorithm, and the other follows Q-learning.
-I have also implemented the Monte Carlo On-Policy and Off-Policy algorithm.
-These agents are trained by a teacher agent that knows the optimal strategy;
-however, the teacher only follows this strategy with a given probability
-p at each turn. The rest of the time this teacher chooses randomly
-from the moves that are available, so that the agents are able to win on
-occasion and learn from these wins. To initialize the learning agent Q values,
-I make use of default dictionaries with default values of 0 such that the
-value for every state-action pair is initialized to 0.
+This project contains four total RL agents to play tictactoe/checkers:
+Q-Learning, SARSA, Monte Carlo Off-Policy, and Monte Carlo On-Policy.
+These agents are trained by a teacher agent that knows the optimal or near-optimal
+strategy; however, the teacher only follows this strategy with a given probability
+p at each turn. The rest of the time this teacher chooses randomly from the moves 
+that are available, so that the agents are able to win on occasion and learn from 
+these wins. To initialize the learning agent Q values, I make use of default 
+dictionaries with default values of 0 such that the value for every state-action pair 
+is initialized to 0 for tictactoe, and initialize a state's state-action pairs when a
+new state is encountered for checkers.
 
 The agents are implemented in `agent.py`.
-Each of the four learning agents inherit from a parent learner class; SARSA and Q-Learning mostly just differ in 
-their Q-value update function. 
+Each of the four learning agents inherit from a parent learner class; Each pair of on/off-policy 
+algorithms (Q-Learning/SARSA and Monte Carlo On/Off-Policy) differ in their Q-value update function. 
+The Monte Carlo agents differ from the other two because MC stores the entire trajectory/set of 
+moves made over the course of the game and updates every move's state-action pair at the end of the
+game, whereas Q/SARSA values are updated on a move-by-move basis.
 
-The Teacher agent used by the training program is implemented in `dictteacher.py`. 
-The teacher knows the optimal policy for each state presented; however, this agent only takes the optimal choice with a set probability. The teacher knows the optimal policy through a pre-calculated dict of every possible board state the teacher
-could see, which was calculated by `tictactoeexpand.py` and `minimaxteacher.py`.
+The Teacher agent used by the training program in tictactoe is implemented in `dictteacher.py`, and the checkers teacher is implemented in `teacher.py`. 
+The teacher knows the optimal (or nearly optimal) policy for each state presented; however, this agent only takes the optimal choice with a set probability. The tictactoe teacher knows the optimal policy through a pre-calculated dict of every possible board state the teacher could see, which was calculated by `tictactoeexpand.py` and `minimaxteacher.py`. Because the number of possible checkers games is exponentially larger than the total number of possible tictactoe games, the checkers teacher uses the minmax algorithm directly rather than calculating results ahead of time. It does use some optimizations to speed this process up: 
+1. Alpha-beta pruning (see https://en.wikipedia.org/wiki/Alpha–beta_pruning)
+2. Dynamic depth adjustment - the teacher's minmax depth limit will dynamically increase as training goes on, beginning at 1 and increasing to 5 for every 1/5 of total training episodes. (This does not apply to test cycles, where the teacher always uses depth=5)
+3. Runtime move storage - while the teacher can't pre-calculate every move, each depth level stores the state-action pairs it calculates in a dictionary (saved to a pickle file) that it first checks before calculating a move, and uses the stored move if the board state is already in the dictionary.
 
 In `game.py`, the main game class is found. 
 The Game class holds the state of each particular game instance, and it contains the majority of the main game functionality. 
@@ -38,7 +54,7 @@ The main game loop can be found in the class's function playGame().
 #### Game Script
 
 To play the game (see "Running the Program" below for instructions) you will use the script called `play.py`.
-The GameLearner class holds the state of the current game sequence, which will continue until the player choses to stop or the teacher has finished the designated number of episodes. Every 100 episodes during training, a "test cycle" occurs where the current agent is tested against an optimal agent and a random agent. The results of these are saved separately from the training and does not affect the training process.
+The GameLearner class holds the state of the current game sequence, which will continue until the player choses to stop or the teacher has finished the designated number of episodes. Every 100 episodes during training, a "test cycle" occurs where the current agent is tested against an optimal agent and a random agent. The results of these are saved separately from the training and does not affect the training process. In tictactoe, a test cycle includes 100 games against a random opponent and 100 games against an optimal opponent, while checkers uses 100 games against a random opponent and 20 games against an optimal opponent to keep training time more reasonable.
 See instructions below on how to use this script.
 
 ## Running the Training Program
