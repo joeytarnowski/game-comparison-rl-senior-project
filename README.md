@@ -113,8 +113,8 @@ To view the total results across 4 agents (currently only works with exactly 4 a
 
     python plot_agent_reward.py -p q_agent.pkl -n "Q-Learning" -p2 sarsa_agent.pkl -n2 "SARSA" -p3 mcon_agent.pkl -n3 "MC On-Policy" -p4 mcoff_agent.pkl -n4 "MC Off-Policy" -t -totalrand
 
-#### Loss/Draw vs Optimal Opponent
-*NOTE: Only losses/draws are displayed because the agent cannot win vs the optimal opponent
+#### Win/Loss/Draw vs Optimal Opponent
+*NOTE: For tictactoe, only losses/draws are displayed because the agent cannot win vs the optimal opponent
 To view a plot of an agent's performance throughout training against an optimal opponent (line chart):
 
     python plot_agent_reward.py -p q_agent.pkl -n "Q-Learning" -t opt
