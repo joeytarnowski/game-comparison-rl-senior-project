@@ -18,6 +18,7 @@ also was the basis for the checkers teacher algorithm.
 You can find both these projects here:
 
 https://github.com/rfeinman/tictactoe-reinforcement-learning/tree/master
+
 https://github.com/SamRagusa/Checkers-Reinforcement-Learning
 
 ## Code Structure
