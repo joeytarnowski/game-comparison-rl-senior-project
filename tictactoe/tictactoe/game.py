@@ -203,12 +203,14 @@ def printBoard(board):
 
 def writeBoard(board,key):
     """
-    Prints the game board as text output to the terminal.
+    Prints the game board as text output to a file.
 
     Parameters
     ----------
     board : list of lists
         the current game board
+    key : string
+        token of most recent player. Either 'O' or 'X'
     """
     with open('outputboard.txt', 'a') as f:
         f.write(f'{key} Wins\n')

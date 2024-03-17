@@ -50,6 +50,7 @@ class GameLearning(object):
         self.games_played = 0
         self.path = args.path
         self.agent = agent
+        self.agent_type = args.agent_type
 
     def beginPlaying(self):
         """ Loop through game iterations with a human player. """
@@ -77,7 +78,10 @@ class GameLearning(object):
     def beginTeaching(self, episodes):
         """ Loop through game iterations with a teaching agent. """
         train_time =  time.perf_counter()
-        teacher = Teacher()
+        # Teacher starts off at low depth, this increases over time
+        teacher = Teacher(depth=1)
+        teacher.agent_id = self.agent_type
+        print(f"Training agent {self.agent_type} for {episodes} episodes")
         # Initial test
         self.runDiag(True)
         self.runDiag(False)
@@ -87,14 +91,19 @@ class GameLearning(object):
             game.start()
             self.games_played += 1
             # Monitor progress
-            if self.games_played % 10 == 0:
+            if self.games_played % 100 == 0:
                 # Run random and optimal tests
                 self.runDiag(True)
                 self.runDiag(False)
-            
-            if self.games_played % 1 == 0:
+            # Increases teacher depth every 1/5 of games
+            if self.games_played % (episodes // 5) == 0:
+                if teacher.depth < 5:
+                    teacher.depth += 1
+                    self.teacher.save_moves_dict()
+            if self.games_played % 10 == 0:
                 print("Games played: %i" % self.games_played)
         self.agent.train_time = time.perf_counter() - train_time
+        print(f"Training time: {self.agent.train_time}")
         # save final agent
         self.agent.save(self.path)
         print(f"The agent won {self.agent.num_wins} times")
@@ -102,31 +111,38 @@ class GameLearning(object):
         print(f"The agent drew {self.agent.num_draws} times")
 
     def runDiag(self, is_rand):
+        print(f"Running test with {'random' if is_rand else 'optimal'} teacher")
+        test_time = time.perf_counter()
         self.agent.save(self.path)
         i = 0
         self.agent.num_wins, self.agent.num_losses, self.agent.num_draws = (0 for i in range(3))
         self.agent.eps = 0
-        test_teacher = Teacher(0) if is_rand else Teacher(1.0)
-        while i < 10:
+        test_teacher = Teacher(level=0) if is_rand else Teacher(level=1.0,depth=5)
+        test_teacher.agent_id = self.agent_type
+        while i < (100 if is_rand else 20):
             game = Game(self.agent, teacher=test_teacher)
             game.start()
             i += 1
-        test_res = [self.agent.num_wins, self.agent.num_losses, self.agent.num_draws]
+            # print(f"Game {i} finished, agent won {self.agent.num_wins} times, lost {self.agent.num_losses} times, and drew {self.agent.num_draws} times")
+        test_res = [self.agent.num_wins, self.agent.num_losses, self.agent.num_draws, game.total_moves]
         with open(self.path, 'rb') as f:
             self.agent = pickle.load(f)
         if is_rand:
             self.agent.testing_results_rand[0].append(test_res[0])
             self.agent.testing_results_rand[1].append(test_res[1])
             self.agent.testing_results_rand[2].append(test_res[2])
+            self.agent.testing_results_rand[3].append(test_res[3])
         else:
             self.agent.testing_results_opt[0].append(test_res[0])
             self.agent.testing_results_opt[1].append(test_res[1])
             self.agent.testing_results_opt[2].append(test_res[2])
+            self.agent.testing_results_opt[3].append(test_res[3])
+        print(f"Test time: {time.perf_counter() - test_time}")
+        print(f"Agent won {test_res[0]} times, lost {test_res[1]} times, and drew {test_res[2]} times")
 
 def initGame(args, override=False):
     # initialize game instance
     gl = GameLearning(args,overridecheck=override)
-    print(args)
 
     # play or teach
     if args.teacher_episodes is not None:
@@ -156,7 +172,6 @@ if __name__ == "__main__":
                         help="employ teacher agent who knows the optimal "
                              "strategy and will play for TEACHER_EPISODES games")
     args = parser.parse_args()
-    print(args)
 
     # set default path
     if args.path is None:

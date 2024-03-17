@@ -49,6 +49,7 @@ class MMTeacher:
     
     def minimax(self, current_board, depth, is_maxim, alpha, beta):
         board = current_board
+        # Depth is added to calculation to ensure teacher chooses the fastest win
         if self.win(board):
             return 10 - depth
         elif self.win(board, 'O'):

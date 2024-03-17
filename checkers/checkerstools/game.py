@@ -8,6 +8,7 @@ NOTES:
 which is showing the piece at [x1,x2] goes to [x2,y2] then [x3,y3] as one move
 -0 is empty spot, 1 is p1, 2 is p2, 3 is p1 king, 4 is p2 king
 -if self.player_turn == True then it is player 1's turn
+-the player/teacher is always player 1
 """
 
 
@@ -44,15 +45,6 @@ class Game:
             self.spots = [[j, j, j, j] for j in [self.P1, self.P1, self.P1, self.EMPTY_SPOT, self.EMPTY_SPOT, self.P2, self.P2, self.P2]]
         else:
             self.spots = old_spots
-
-
-    def reset_board(self):
-        """
-        Resets the current configuration of the game board to the original 
-        starting position.
-        """
-        self.spots = Game().spots
-        
     
     def empty_board(self):
         """
@@ -457,7 +449,7 @@ class Game:
             try:
                 self.player_move()
             except TypeError:
-                self.print_board()
+                self.agent.update_count("win")
                 reward = 100
                 break
             check = self.get_outcome()
@@ -484,7 +476,7 @@ class Game:
                 prev_action = new_action
                 possible_actions = new_possible_actions
             except ValueError:
-                print("new_state:", new_state)  
+                self.agent.update_count("loss")
                 reward = -100
                 break
             self.total_moves += 1
@@ -492,9 +484,7 @@ class Game:
         # Game over. Perform final update
         self.agent.update(prev_state, None, prev_action, None, reward, possible_actions)
         self.agent.end_update()
-        self.teacher.save_moves_dict()
-        print("Reward: ", reward)
-        print(f"Game over. Total moves: {self.total_moves}")
+        
 
 
     def start(self):

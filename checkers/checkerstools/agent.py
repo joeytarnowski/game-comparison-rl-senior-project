@@ -25,8 +25,8 @@ class Learner:
         self.eps_decay = eps_decay
         self.train_time = 0
         self.num_wins, self.num_losses, self.num_draws = (0 for i in range(3))
-        self.testing_results_rand = [[],[],[]]
-        self.testing_results_opt = [[],[],[]]
+        self.testing_results_rand = [[],[],[],[]]
+        self.testing_results_opt = [[],[],[],[]]
 
         # Initialize Q table to empty list to hold state-action pairs.
         # Access value for state s, action (move, piece) via Q[s][a]

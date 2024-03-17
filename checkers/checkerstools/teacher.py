@@ -8,6 +8,7 @@ import random
 import copy
 import pickle
 import os
+import time
 
 class Teacher:
     """
@@ -37,21 +38,6 @@ class Teacher:
         Gets the desired next move from the AI.
         """
         pass
-
-
-def reward_function(state_info1, state_info2):
-    """
-    Reward for transitioning from state with state_info1 to state with state_info2.
-    
-    NOTE:
-    1) do something better with where/how this is implemented
-    2) should give some kind of negative for tieing
-    """
-    if state_info2[1] == 0 and state_info2[3] == 0:
-        return 12
-    if state_info2[0] == 0 and state_info2[2] == 0:
-        return -12
-    return state_info2[0]-state_info1[0] + 2*(state_info2[2]-state_info1[2])-(state_info2[1]-state_info1[1])-2*(state_info2[3]-state_info1[3])
 
 
 def get_number_of_pieces_and_kings(spots, player_id=None):
@@ -85,21 +71,33 @@ class Alpha_beta(Teacher):
     so that you can make a more robust set of training AI
     """
     
-    def __init__(self, level=.9, the_player_id=True, the_depth=6, the_board=None):
+    def __init__(self, level=.9, player_id=True, depth=2, the_board=None):
         """
         Initialize the instance variables to be stored by the AI. 
         """
         self.board = the_board
-        self.depth = the_depth
-        self.player_id = the_player_id
+        self.depth = depth
+        self.player_id = player_id
         self.level = level
         self.moves_dict = {}
         self.board_key = None
+        self.tested_states = 0
+        self.teach_time =  time.perf_counter()
+        self.agent_id = ""
+
 
     def save_moves_dict(self, filename = None):
         # Store data (serialize)
         if filename is None:
-            with open('checkers_table.pkl', 'wb') as handle:
+            # Syncs the moves_dict with the file
+            if os.path.isfile(f'checkers_table{self.depth}.pkl'):
+                with open(f'checkers_table{self.depth}.pkl', 'rb') as handle:
+                        self.moves_dict.update(pickle.load(handle))
+            # Save the new combined moves_dict
+#            with open(f'{self.agent_id}teachinfo.txt', 'a') as f:
+#                f.write(f"Saving. Moves dictionary length: {len(self.moves_dict)}\n\n")
+            
+            with open(f'checkers_table{self.depth}.pkl', 'wb') as handle:
                 pickle.dump(self.moves_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
         else:
             with open(filename, 'wb') as handle:
@@ -108,8 +106,8 @@ class Alpha_beta(Teacher):
     def load_moves_dict(self, filename = None):
         # Load data (deserialize)
         if filename is None:
-            if os.path.isfile('checkers_table.pkl'):
-                with open('checkers_table.pkl', 'rb') as handle:
+            if os.path.isfile(f'checkers_table{self.depth}.pkl'):
+                with open(f'checkers_table{self.depth}.pkl', 'rb') as handle:
                     self.moves_dict = pickle.load(handle)
         else:
             if os.path.isfile(filename):
@@ -121,7 +119,9 @@ class Alpha_beta(Teacher):
         A method implementing alpha-beta pruning to decide what move to make given 
         the current board configuration. 
         """
-        if board.is_game_over():
+        self.tested_states += 1
+
+        if board.get_outcome() != 0:
             if get_number_of_pieces_and_kings(board.spots, board.player_turn) == [0,0]:
                 if maximizing_player:
                     #Using integers instead of float("inf") so it's less than float("inf") not equal to
@@ -139,8 +139,8 @@ class Alpha_beta(Teacher):
         if depth == 0:
             players_info = get_number_of_pieces_and_kings(board.spots)
             if board.player_turn != maximizing_player:
-                return  players_info[1] + 2 * players_info[3] - (players_info[0] + 2 * players_info[2]), None
-            return  players_info[0] + 2 * players_info[2] - (players_info[1] + 2 * players_info[3]), None
+                return (players_info[1] + 2 * players_info[3]) - (players_info[0] + 2 * players_info[2]), None
+            return (players_info[0] + 2 * players_info[2]) - (players_info[1] + 2 * players_info[3]), None
         possible_moves = board.get_possible_next_moves()
 
         potential_spots = board.get_potential_spots_from_moves(possible_moves)
@@ -149,7 +149,7 @@ class Alpha_beta(Teacher):
             v = float('-inf')
             for j in range(len(potential_spots)):
                 cur_board = copy.deepcopy(board)
-                cur_board.old_spots = potential_spots[j]
+                cur_board.spots = potential_spots[j]
                 cur_board.player_turn = not board.player_turn
                 alpha_beta_results = self.alpha_beta(cur_board, depth - 1, alpha, beta, False)
                 if v < alpha_beta_results[0]: 
@@ -166,7 +166,7 @@ class Alpha_beta(Teacher):
             v = float('inf')
             for j in range(len(potential_spots)):
                 cur_board = copy.deepcopy(board)
-                cur_board.old_spots = potential_spots[j]
+                cur_board.spots = potential_spots[j]
                 cur_board.player_turn = not board.player_turn
                 alpha_beta_results = self.alpha_beta(cur_board, depth - 1, alpha, beta, True)
                 if v > alpha_beta_results[0]:  
@@ -182,14 +182,32 @@ class Alpha_beta(Teacher):
     
     def get_next_move(self):
         self.board_key = self.get_state_key()
+        self.tested_states = 0
+        self.teach_time =  time.perf_counter()
 
         # Chose randomly with some probability so that the teacher does not always win
         if random.random() > self.level:
             possible_actions = self.board.get_possible_next_moves()
-            return possible_actions[random.randint(0,len(possible_actions)-1)]
+            if possible_actions == []:
+                return None
+            else:
+                return possible_actions[random.randint(0,len(possible_actions)-1)]
+            
         if self.board_key not in self.moves_dict:
-            self.moves_dict[self.board_key] = self.alpha_beta(self.board, self.depth, float('-inf'), float('inf'), self.player_id)[1]
-        return self.moves_dict[self.board_key]
+            alpha_beta_results = self.alpha_beta(self.board, self.depth, float('-inf'), float('inf'), self.player_id)
+            self.moves_dict[self.board_key] = alpha_beta_results[1]
+            selected_move = alpha_beta_results[1]
+        else:
+            selected_move = self.moves_dict[self.board_key]
+
+        with open(f'{self.agent_id}teachinfo.txt', 'a') as f:
+            f.write(f"Teacher returning move ({selected_move}) for board ({self.board_key})\n")
+    
+        self.teach_time = time.perf_counter() - self.teach_time
+        with open(f'{self.agent_id}teachinfo.txt', 'a') as f:
+            f.write(f"Teaching time: {self.teach_time}. Tested states: {self.tested_states}\n\n")
+        
+        return selected_move
  
 
     def get_symbol(self, location):
