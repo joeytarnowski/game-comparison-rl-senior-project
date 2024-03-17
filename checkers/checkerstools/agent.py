@@ -1,10 +1,3 @@
-'''
-Created on Mar 12, 2024
-
-@author: Joey Tarnowski
-Based on code by Sam Ragusa and Reuben Feinman
-'''
-
 import random
 import pickle
 import os

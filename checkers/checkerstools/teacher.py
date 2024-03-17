@@ -1,9 +1,3 @@
-'''
-Created on Mar 12, 2024
-
-@author: Sam Ragusa
-'''
-
 import random
 import copy
 import pickle
@@ -201,7 +195,7 @@ class Alpha_beta(Teacher):
             selected_move = self.moves_dict[self.board_key]
 
         with open(f'{self.agent_id}teachinfo.txt', 'a') as f:
-            f.write(f"Teacher returning move ({selected_move}) for board ({self.board_key})\n")
+            f.write(f"Teacher returning move {selected_move} for board ({self.board_key})\n")
     
         self.teach_time = time.perf_counter() - self.teach_time
         with open(f'{self.agent_id}teachinfo.txt', 'a') as f:

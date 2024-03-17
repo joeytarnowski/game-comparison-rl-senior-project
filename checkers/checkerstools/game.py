@@ -1,8 +1,4 @@
 """
-Created on Mar 12, 2024
-
-@author: Joey Tarnowski
-Based on code by Sam Ragusa and Reuben Feinman
 NOTES:
 -Should store moves as array of locations e.g.: [[x1,y1],[x2,y2],[x3,y3]]
 which is showing the piece at [x1,x2] goes to [x2,y2] then [x3,y3] as one move

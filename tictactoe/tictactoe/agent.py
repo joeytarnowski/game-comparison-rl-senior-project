@@ -1,9 +1,3 @@
-'''
-Created on Feb 1, 2024
-
-@author: Joey Tarnowski
-Based on code by Reuben Feinman
-'''
 from abc import ABC, abstractmethod
 import os
 import pickle

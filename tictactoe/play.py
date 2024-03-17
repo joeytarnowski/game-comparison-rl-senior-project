@@ -5,7 +5,6 @@ import sys
 import time
 
 from tictactoe.agent import Qlearner, SARSAlearner, MCOffPolicyLearner, MCOnPolicyLearner
-from tictactoe.teacher import Teacher
 from tictactoe.game import Game
 from tictactoe.dictteacher import Teacher
 

@@ -1,10 +1,3 @@
-'''
-Created on Jan 29, 2024
-
-@author: Joey Tarnowski
-Based on code by Reuben Feinman
-'''
-
 import random
 
 class Game:

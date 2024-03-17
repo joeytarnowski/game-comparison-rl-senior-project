@@ -99,7 +99,9 @@ class GameLearning(object):
             if self.games_played % (episodes // 5) == 0:
                 if teacher.depth < 5:
                     teacher.depth += 1
+                    # Save and reset moves_dict every time depth increases
                     self.teacher.save_moves_dict()
+                    self.teacher.moves_dict = {}
             if self.games_played % 10 == 0:
                 print("Games played: %i" % self.games_played)
         self.agent.train_time = time.perf_counter() - train_time
@@ -118,12 +120,15 @@ class GameLearning(object):
         self.agent.num_wins, self.agent.num_losses, self.agent.num_draws = (0 for i in range(3))
         self.agent.eps = 0
         test_teacher = Teacher(level=0) if is_rand else Teacher(level=1.0,depth=5)
+        if not is_rand:
+            test_teacher.load_moves_dict()
         test_teacher.agent_id = self.agent_type
         while i < (100 if is_rand else 20):
             game = Game(self.agent, teacher=test_teacher)
             game.start()
             i += 1
             # print(f"Game {i} finished, agent won {self.agent.num_wins} times, lost {self.agent.num_losses} times, and drew {self.agent.num_draws} times")
+        test_teacher.save_moves_dict()
         test_res = [self.agent.num_wins, self.agent.num_losses, self.agent.num_draws, game.total_moves]
         with open(self.path, 'rb') as f:
             self.agent = pickle.load(f)
