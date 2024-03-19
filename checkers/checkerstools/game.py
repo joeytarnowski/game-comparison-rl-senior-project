@@ -60,7 +60,7 @@ class Game:
         piece_counter = self.get_number_of_pieces_and_kings()
         if piece_counter[0] != 0 or piece_counter[2] != 0:
             if piece_counter[1] != 0 or piece_counter[3] != 0:
-                if self.draw_counter == 50:
+                if self.draw_counter >= 50:
                     return 3
                 return 0
             return 1
@@ -412,7 +412,7 @@ class Game:
         prev_state = str(prev_state)
         prev_state_val = (prev_state.count("1") + 2 * prev_state.count("3")) - (prev_state.count("2") + 2 * prev_state.count("4"))
         new_state = str(self.get_state_key())
-        new_state_val = (new_state.count("1") + 2 * new_state.count("2")) - (new_state.count("3") + 2 * new_state.count("4"))
+        new_state_val = (new_state.count("1") + 2 * new_state.count("3")) - (new_state.count("2") + 2 * new_state.count("4"))
         return new_state_val - prev_state_val
 
 

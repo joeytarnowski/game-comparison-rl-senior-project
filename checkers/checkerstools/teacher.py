@@ -207,8 +207,6 @@ class Alpha_beta(Teacher):
             
         # If the board configuration has not been seen before, use alpha-beta to decide the next move
         if self.board_key not in self.moves_dict:
-#            with open(f'{self.agent_id}teachinfo.txt', 'a') as f:
-#                f.write(f"Beginning teaching time: {time.perf_counter()-self.teach_time}.\n")
             alpha_beta_results = self.alpha_beta(self.board_key, self.depth, float('-inf'), float('inf'), self.player_id)
 #            with open(f'{self.agent_id}teachinfo.txt', 'a') as f:
 #                f.write(f"Found teaching time: {time.perf_counter()-self.teach_time}.\n")
@@ -216,8 +214,7 @@ class Alpha_beta(Teacher):
             selected_move = alpha_beta_results[1]
             
         else:
-#            with open(f'{self.agent_id}teachinfo.txt', 'a') as f:
-#                f.write(f"Begin find teaching time: {self.teach_time-time.perf_counter()}.\n")
+
             selected_move = self.moves_dict[self.board_key][1]
         self.teach_time = time.perf_counter() - self.teach_time
 #        with open(f'{self.agent_id}teachinfo.txt', 'a') as f:
@@ -248,7 +245,6 @@ class Board:
         self.draw_counter = draw_counter
 
         
-    
     def get_state_key(self, spots):
         """
         Gets a string representation of the current game board.
@@ -259,7 +255,6 @@ class Board:
                 answer += spots[j][i]
                 answer *= 10
         return answer
-
 
     def get_spots(self, board_key):
         """
@@ -301,7 +296,6 @@ class Board:
             return True
         return False
 
-
     def get_number_of_pieces_and_kings(self, player_id=None):
         """
         Gets the number of pieces and the number of kings that each player has on the current 
@@ -322,7 +316,6 @@ class Board:
         
         return piece_counter
     
-
     def not_spot(self, loc):
         """
         Finds out of the spot at the given location is an actual spot on the game board.
@@ -330,7 +323,6 @@ class Board:
         if len(loc) == 0 or loc[0] < 0 or loc[0] > self.HEIGHT - 1 or loc[1] < 0 or loc[1] > self.WIDTH - 1:
             return True
         return False
-    
     
     def get_spot_info(self, loc):
         """
@@ -340,7 +332,6 @@ class Board:
         Might want to not use this for the sake of computational time.
         """
         return self.spots[loc[0]][loc[1]]
-    
     
     def forward_n_locations(self, start_loc, n, backwards=False):
         """
@@ -373,7 +364,6 @@ class Board:
             
         return answer
     
-
     def get_simple_moves(self, start_loc):
         """    
         Gets the possible moves a piece can make given that it does not capture any opponents pieces.
@@ -399,7 +389,6 @@ class Board:
             
         return [[start_loc, end_spot] for end_spot in possible_next_locations]      
            
-     
     def get_capture_moves(self, start_loc, move_beginnings=None):
         """
         Recursively get all of the possible moves for a piece which involve capturing an opponent's piece.
@@ -444,7 +433,6 @@ class Board:
                             
         return answer
     
-        
     def get_possible_next_moves(self):
         """
         Gets the possible moves that can be made from the current board configuration.
@@ -470,7 +458,6 @@ class Board:
         except TypeError:
             return []
     
-
     def get_potential_spots_from_moves(self, moves):
         """
         Get's the potential spots for the board if it makes any of the given moves.
@@ -485,7 +472,6 @@ class Board:
             answer.append(self.spots) 
             self.spots = original_spots 
         return answer
-        
         
     def make_move(self, move, switch_player_turn=True):
         """
