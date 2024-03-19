@@ -249,7 +249,8 @@ class Game:
         Query player for a move and update the board accordingly.
         """
         if self.teacher is not None:
-            self.teacher.set_board(self)
+            key = self.get_state_key()
+            self.teacher.new_board(self, key)
             action = self.teacher.get_next_move()
             self.make_move(action)
         else:
@@ -440,18 +441,19 @@ class Game:
             check = self.get_outcome()
             if check != 0:
                 self.agent.update_count("win" if check == 2 else "draw")
-                reward = 100 if check == 2 else 0
+                reward = 10 if check == 2 else 0
                 break
             try:
                 self.player_move()
             except TypeError:
+                # Catches no more possible moves
                 self.agent.update_count("win")
-                reward = 100
+                reward = 10
                 break
             check = self.get_outcome()
             if not check == 0:
                 self.agent.update_count("loss" if check == 1 else "draw")
-                reward = -100 if check == 1 else 0
+                reward = -10 if check == 1 else 0
                 break
             else:
                 # game continues
@@ -472,8 +474,9 @@ class Game:
                 prev_action = new_action
                 possible_actions = new_possible_actions
             except ValueError:
+                # Catches no more possible moves
                 self.agent.update_count("loss")
-                reward = -100
+                reward = -10
                 break
             self.total_moves += 1
 
@@ -491,7 +494,6 @@ class Game:
         like to move fist. 
         """
         if self.teacher is not None:
-            self.teacher.load_moves_dict()
             # During teaching, chose who goes first randomly with equal probability
             if random.random() < 0.5:
                 self.playGame(player_first=False)
