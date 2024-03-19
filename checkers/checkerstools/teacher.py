@@ -95,9 +95,7 @@ class Alpha_beta(Teacher):
                 print("Error saving moves dictionary")
             except EOFError:
                 print("Error saving moves dictionary")
-            
-
-    
+             
     def load_moves_dict(self, filename = None):
         while True:
             try:
@@ -153,8 +151,9 @@ class Alpha_beta(Teacher):
 
         # Tests to see if draw counter increases
         if len(potential_spots) == 1:
-            test_key = board.get_state_key(potential_spots[0])
-            if board_key.count('o') == test_key.count('o') and board_key.count('x') == test_key.count('x') and board_key.count('O') == test_key.count('O') and board_key.count('X') == test_key.count('X'):
+            test_key = str(board.get_state_key(potential_spots[0]))
+            str_board_key = str(board_key)
+            if str_board_key.count('1') == test_key.count('1') and str_board_key.count('2') == test_key.count('2') and str_board_key.count('3') == test_key.count('3') and str_board_key.count('4') == test_key.count('4'):
                 self.draw_counter += 1
 
         desired_move_index = None
@@ -248,56 +247,34 @@ class Board:
         self.player_turn = player_turn
         self.draw_counter = draw_counter
 
-
-    def get_symbol(self, board_spots, location):
-        """
-        Gets the symbol for what should be at a board location.
-        """
-        if board_spots[location[0]][location[1]] == self.EMPTY_SPOT:
-            return " "
-        elif board_spots[location[0]][location[1]] == self.P1:
-            return "o"
-        elif board_spots[location[0]][location[1]] == self.P2:
-            return "x"
-        elif board_spots[location[0]][location[1]] == self.P1_K:
-            return "O"
-        else:
-            return "X"
         
-    def reverse_symbol(self, symbol):
-        """
-        Gets the symbol for what should be at a board location.
-        """
-        if symbol == " ":
-            return self.EMPTY_SPOT
-        elif symbol == "o":
-            return self.P1
-        elif symbol == "x":
-            return self.P2
-        elif symbol == "O":
-            return self.P1_K
-        else:
-            return self.P2_K
     
     def get_state_key(self, spots):
         """
         Gets a string representation of the current game board.
         """
-        answer = ""
+        answer = 0
         for j in range(self.HEIGHT):
             for i in range(self.WIDTH):
-                answer += self.get_symbol(spots, [j, i])
+                answer += spots[j][i]
+                answer *= 10
         return answer
-    
+
+
     def get_spots(self, board_key):
         """
         Gets the board spots from a given board_key.
         """
         answer = []
+        board_key = str(board_key)
+        if len(board_key) != self.HEIGHT * self.WIDTH:
+            for j in range(self.WIDTH*self.HEIGHT - len(board_key)):
+                board_key = "0" + board_key
         for j in range(self.HEIGHT):
             answer.append([])
             for i in range(self.WIDTH):
-                answer[j].append(self.reverse_symbol(board_key[j * self.WIDTH + i]))
+                answer[j].append(int(board_key[j * self.WIDTH + i]))
+
         return answer
 
     def get_outcome(self):
@@ -314,7 +291,6 @@ class Board:
                 return 0
             return 1
         return 2
-
 
     def is_game_over(self):
         """

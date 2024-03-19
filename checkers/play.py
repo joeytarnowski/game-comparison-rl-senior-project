@@ -80,7 +80,7 @@ class GameLearning(object):
         train_time =  time.perf_counter()
         # Teacher parameters
         depth = 1
-        level = 0.0
+        level = 0.9
         # Teacher starts off at low depth, this increases over time
         teacher = Teacher(depth=depth, level=level)
         teacher.agent_id = self.agent_type

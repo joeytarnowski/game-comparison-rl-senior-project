@@ -1,7 +1,7 @@
 """
 NOTES:
--Should store moves as array of locations e.g.: [[x1,y1],[x2,y2],[x3,y3]]
-which is showing the piece at [x1,x2] goes to [x2,y2] then [x3,y3] as one move
+-Should store moves as array of locations e.g.: [[y1,x1],[y2,x2],[y3,x3]]
+which is showing the piece at [y1,x1] goes to [y2,x2] then [y3,x3] as one move
 -0 is empty spot, 1 is p1, 2 is p2, 3 is p1 king, 4 is p2 king
 -if self.player_turn == True then it is player 1's turn
 -the player/teacher is always player 1
@@ -377,13 +377,15 @@ class Game:
         """
         Gets a string representation of the current game board.
         """
-        answer = ""
+        answer = 0
         for j in range(self.HEIGHT):
             for i in range(self.WIDTH):
-                answer += self.get_symbol([j, i])
+                answer += self.spots[j][i]
+                answer *= 10
+        
         return answer
 
-
+   
     def print_board(self):
         """
         Prints a string representation of the current game board.
@@ -407,9 +409,10 @@ class Game:
         """
         Calculate the reward for the current game state. 
         """
-        prev_state_val = (prev_state.count("x") + 2 * prev_state.count("X")) - (prev_state.count("o") + 2 * prev_state.count("O"))
-        new_state = self.get_state_key()
-        new_state_val = (new_state.count("x") + 2 * new_state.count("X")) - (new_state.count("o") + 2 * new_state.count("O"))
+        prev_state = str(prev_state)
+        prev_state_val = (prev_state.count("1") + 2 * prev_state.count("3")) - (prev_state.count("2") + 2 * prev_state.count("4"))
+        new_state = str(self.get_state_key())
+        new_state_val = (new_state.count("1") + 2 * new_state.count("2")) - (new_state.count("3") + 2 * new_state.count("4"))
         return new_state_val - prev_state_val
 
 

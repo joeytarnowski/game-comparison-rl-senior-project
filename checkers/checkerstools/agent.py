@@ -20,6 +20,8 @@ class Learner:
         self.num_wins, self.num_losses, self.num_draws = (0 for i in range(3))
         self.testing_results_rand = [[],[],[],[]]
         self.testing_results_opt = [[],[],[],[]]
+        self.HEIGHT = 8
+        self.WIDTH = 4
 
         # Initialize Q table to empty list to hold state-action pairs.
         # Access value for state s, action (move, piece) via Q[s][a]
@@ -139,13 +141,14 @@ class Qlearner(Learner):
             list of possible actions from state "s".
         """
         a = tuple([tuple(a[0]), tuple(a[1])])
+        
         # Update Q(s,a)
         if s_ is not None:
             # hold list of Q values for all a_,s_ pairs. We will access the max later
             Q_options = [self.Q[s_][tuple([tuple(action[0]), tuple(action[1])])] for action in possible_actions]
-            
             # update
             self.Q[s][a] += self.alpha*(r + self.gamma*max(Q_options) - self.Q[s][a])
+
         else:
             # terminal state update
             self.Q[s][a] += self.alpha*(r - self.Q[s][a])
@@ -184,9 +187,9 @@ class SARSAlearner(Learner):
             list of possible actions from state "s". NOT USED WITH ON-POLICY AGENT
         """
         a = tuple([tuple(a[0]), tuple(a[1])])
+        a_ = tuple([tuple(a_[0]), tuple(a_[1])])
         # Update Q(s,a)
         if s_ is not None:
-            a_ = tuple([tuple(a_[0]), tuple(a_[1])])
             self.Q[s][a] += self.alpha*(r + self.gamma*self.Q[s_][a_] - self.Q[s][a])
         else:
             # terminal state update
