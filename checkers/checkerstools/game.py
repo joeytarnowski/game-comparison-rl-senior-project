@@ -37,6 +37,8 @@ class Game:
         self.player_turn = player_turn
         self.draw_counter = 0
         self.total_moves = 0
+        self.rep_counter = 0
+        self.rep_moves = []
         if old_spots is None:   
             self.spots = [[j, j, j, j] for j in [self.P1, self.P1, self.P1, self.EMPTY_SPOT, self.EMPTY_SPOT, self.P2, self.P2, self.P2]]
         else:
@@ -244,7 +246,6 @@ class Game:
     
     
     def player_move(self):
-        self.player_turn = True
         """
         Query player for a move and update the board accordingly.
         """
@@ -290,7 +291,6 @@ class Game:
                     continue
                 break
             self.make_move([piece, move])
-            self.player_turn = False
 
 
     def agent_move(self, action):
@@ -319,12 +319,14 @@ class Game:
                 
                 
         self.spots[move[len(move) - 1][0]][move[len(move) - 1][1]] = self.spots[move[0][0]][move[0][1]]
+        # Promote to king if at the end of the board
         if move[len(move) - 1][0] == self.HEIGHT - 1 and self.spots[move[len(move) - 1][0]][move[len(move) - 1][1]] == self.P1:
             self.spots[move[len(move) - 1][0]][move[len(move) - 1][1]] = self.P1_K
         elif move[len(move) - 1][0] == 0 and self.spots[move[len(move) - 1][0]][move[len(move) - 1][1]] == self.P2:
             self.spots[move[len(move) - 1][0]][move[len(move) - 1][1]] = self.P2_K
         else:
             self.spots[move[len(move) - 1][0]][move[len(move) - 1][1]] = self.spots[move[0][0]][move[0][1]]
+            
         self.spots[move[0][0]][move[0][1]] = self.EMPTY_SPOT
                 
         if switch_player_turn:
@@ -382,10 +384,35 @@ class Game:
             for i in range(self.WIDTH):
                 answer += self.spots[j][i]
                 answer *= 10
-        
+        answer = answer // 10
         return answer
 
    
+    def output_board(self):
+        """
+        Prints a string representation of the current game board.
+        """
+        norm_line = "|---|---|---|---|---|---|---|---|"
+        with open("board.txt", "a") as f:
+            f.write(norm_line + "\n")
+            for j in range(self.HEIGHT):
+                if j % 2 == 1:
+                    temp_line = "|///|"
+                else:
+                    temp_line = "|"
+                for i in range(self.WIDTH):
+                    temp_line = temp_line + " " + self.get_symbol([j, i]) + " |"
+                    if i != 3 or j % 2 != 1:  # should figure out if this 3 should be changed to self.WIDTH-1
+                        temp_line = temp_line + "///|"
+                f.write(temp_line + "\n")
+                f.write(norm_line + "\n")
+
+            f.write(f"\nplayer turn: {self.player_turn}\n")
+            f.write(f"draw counter: {self.draw_counter}\n")    
+            f.write(f"rep counter: {self.rep_counter}\n") 
+            f.write(f"total moves: {self.total_moves}\n") 
+
+
     def print_board(self):
         """
         Prints a string representation of the current game board.
@@ -407,12 +434,12 @@ class Game:
 
     def calc_reward(self, prev_state):
         """
-        Calculate the reward for the current game state. 
+        Calculate the reward for the current game state for PLAYER 2. 
         """
         prev_state = str(prev_state)
-        prev_state_val = (prev_state.count("1") + 2 * prev_state.count("3")) - (prev_state.count("2") + 2 * prev_state.count("4"))
+        prev_state_val = (prev_state.count("2") + 2 * prev_state.count("4")) - (prev_state.count("1") + 2 * prev_state.count("3"))
         new_state = str(self.get_state_key())
-        new_state_val = (new_state.count("1") + 2 * new_state.count("3")) - (new_state.count("2") + 2 * new_state.count("4"))
+        new_state_val = (new_state.count("2") + 2 * new_state.count("4")) - (new_state.count("1") + 2 * new_state.count("3"))
         return new_state_val - prev_state_val
 
 
@@ -444,19 +471,20 @@ class Game:
             check = self.get_outcome()
             if check != 0:
                 self.agent.update_count("win" if check == 2 else "draw")
-                reward = 10 if check == 2 else 0
+                reward = 100 if check == 2 else 0
                 break
+            # player move
             try:
                 self.player_move()
             except TypeError:
                 # Catches no more possible moves
                 self.agent.update_count("win")
-                reward = 10
+                reward = 100
                 break
             check = self.get_outcome()
             if not check == 0:
                 self.agent.update_count("loss" if check == 1 else "draw")
-                reward = -10 if check == 1 else 0
+                reward = -100 if check == 1 else 0
                 break
             else:
                 # game continues
@@ -466,6 +494,20 @@ class Game:
                 self.draw_counter = 0
             else:
                 self.draw_counter += 1
+                # Check for threefold repetition
+                if len(self.rep_moves) <= 1:
+                    self.rep_moves.append(prev_state)
+                    self.rep_moves.append(new_state)
+                else:
+                    if new_state == self.rep_moves[0] and prev_state == self.rep_moves[1]:
+                        self.rep_counter += 1
+                        if self.rep_counter >= 2:
+                            self.agent.update_count("draw")
+                            reward = 0
+                            break
+                    else:
+                        self.rep_counter = 0
+                        self.rep_moves = []
             # determine new action (epsilon-greedy)
             new_possible_actions = self.get_possible_next_moves()
             try:
@@ -479,7 +521,7 @@ class Game:
             except ValueError:
                 # Catches no more possible moves
                 self.agent.update_count("loss")
-                reward = -10
+                reward = -100
                 break
             self.total_moves += 1
 

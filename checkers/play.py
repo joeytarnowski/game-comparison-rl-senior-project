@@ -1,4 +1,5 @@
 import argparse
+import gc
 import os
 import pickle
 import sys
@@ -16,7 +17,7 @@ class GameLearning(object):
     games that have been played.
     """
     def __init__(self, args, alpha=0.5, gamma=0.9, epsilon=1, overridecheck=False):
-        self.eps_decay = 0.0001
+        self.eps_decay = 0.00003
 
         if args.load:
             # load an existing agent and continue training
@@ -80,9 +81,10 @@ class GameLearning(object):
         train_time =  time.perf_counter()
         # Teacher parameters
         depth = 1
-        level = 0.9
+        level = 0.5
+        use_dict = False
         # Teacher starts off at low depth, this increases over time
-        teacher = Teacher(depth=depth, level=level)
+        teacher = Teacher(depth=depth, level=level, use_dict=use_dict)
         teacher.agent_id = self.agent_type
         teacher.load_moves_dict()
         print(f"Training agent {self.agent_type} for {episodes} episodes")
@@ -91,8 +93,6 @@ class GameLearning(object):
         self.agent.save(self.path)
         self.runDiag(True, teacher)
         self.runDiag(False, teacher)
-        with open(self.path, 'rb') as f:
-            self.agent = pickle.load(f)
         teacher.depth = depth
         teacher.level = level
         teacher.load_moves_dict()
@@ -104,25 +104,24 @@ class GameLearning(object):
             self.games_played += 1
             # Monitor progress
             if self.games_played % 1000 == 0:
-                # Save and clear teacher to conserve memory
+                # Save teacher and agent
                 teacher.save_moves_dict()
-                teacher.moves_dict = {}
-                # Run random and optimal tests
                 self.agent.save(self.path)
+                # Run random and optimal tests
                 self.runDiag(True, teacher)
                 self.runDiag(False, teacher)
-                with open(self.path, 'rb') as f:
-                    self.agent = pickle.load(f)
                 # Reload teacher
                 teacher.depth = depth
                 teacher.level = level
                 teacher.load_moves_dict()
 
             # Increases teacher depth every 1/5 of games
-            if self.games_played % (episodes // 5) == 0:
+            if self.games_played % (episodes // 2) == 0:
                 if depth < 5:
+                    teacher.save_moves_dict()
                     depth += 1
                     teacher.depth = depth
+                    teacher.load_moves_dict()
             if self.games_played % 100 == 0:
                 print("Games played: %i" % self.games_played)
 
@@ -135,11 +134,18 @@ class GameLearning(object):
         print(f"The agent drew {self.agent.num_draws} times")
 
     def runDiag(self, is_rand, test_teacher):
+#        gc.collect()
         print(f"Running test with {'random' if is_rand else 'optimal'} teacher")
         test_time = time.perf_counter()
         i = 0
+        prev_wins = self.agent.num_wins
+        prev_losses = self.agent.num_losses
+        prev_draws = self.agent.num_draws
         self.agent.num_wins, self.agent.num_losses, self.agent.num_draws = (0 for i in range(3))
+        prev_eps = self.agent.eps
+        prev_alpha = self.agent.alpha
         self.agent.eps = 0
+        self.agent.alpha = 0
         if not is_rand:
             test_teacher.level = 1.0
             test_teacher.depth = 5
@@ -153,19 +159,22 @@ class GameLearning(object):
             game.start()
             i += 1
         test_res = [self.agent.num_wins, self.agent.num_losses, self.agent.num_draws, game.total_moves]
-        with open(self.path, 'rb') as f:
-            self.agent = pickle.load(f)
+#        self.agent = None
+#        with open(self.path, 'rb') as f:
+#            self.agent = pickle.load(f)
         if is_rand:
-            self.agent.testing_results_rand[0].append(test_res[0])
-            self.agent.testing_results_rand[1].append(test_res[1])
-            self.agent.testing_results_rand[2].append(test_res[2])
-            self.agent.testing_results_rand[3].append(test_res[3])
+            for i in range(4):
+                self.agent.testing_results_rand[i].append(test_res[i])
         else:
-            self.agent.testing_results_opt[0].append(test_res[0])
-            self.agent.testing_results_opt[1].append(test_res[1])
-            self.agent.testing_results_opt[2].append(test_res[2])
-            self.agent.testing_results_opt[3].append(test_res[3])
+            for i in range(4):
+                self.agent.testing_results_opt[i].append(test_res[i])
             test_teacher.save_moves_dict()
+        # Restore agent to previous state
+        self.agent.eps = prev_eps
+        self.agent.alpha = prev_alpha
+        self.agent.num_wins = prev_wins
+        self.agent.num_losses = prev_losses
+        self.agent.num_draws = prev_draws
         print(f"Test time: {time.perf_counter() - test_time}")
         print(f"Agent won {test_res[0]} times, lost {test_res[1]} times, and drew {test_res[2]} times")
 

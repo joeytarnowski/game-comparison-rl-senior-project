@@ -81,8 +81,7 @@ class Learner:
             for i in ix_max:
                 traj.append(possible_actions[i])
             self.target_trajectory.append(traj)
-        # update epsilon; geometric decay
-        self.eps *= (1.-self.eps_decay)
+
         return action
     
     def compute_cum_rewards(self, gamma, t, rewards) -> float:
@@ -127,9 +126,9 @@ class Qlearner(Learner):
 
         Parameters
         ----------
-        s : string
+        s : int
             previous state
-        s_ : string
+        s_ : int
             new state
         a : (i,j) tuple
             previous action
@@ -157,7 +156,8 @@ class Qlearner(Learner):
         self.rewards.append(r)
 
     def end_update(self):
-        _ = 0
+        # update epsilon; geometric decay
+        self.eps *= (1.-self.eps_decay)
 
 class SARSAlearner(Learner):
     """
@@ -173,9 +173,9 @@ class SARSAlearner(Learner):
 
         Parameters
         ----------
-        s : string
+        s : int
             previous state
-        s_ : string
+        s_ : int
             new state
         a : (i,j) tuple
             previous action
@@ -187,9 +187,10 @@ class SARSAlearner(Learner):
             list of possible actions from state "s". NOT USED WITH ON-POLICY AGENT
         """
         a = tuple([tuple(a[0]), tuple(a[1])])
-        a_ = tuple([tuple(a_[0]), tuple(a_[1])])
+
         # Update Q(s,a)
         if s_ is not None:
+            a_ = tuple([tuple(a_[0]), tuple(a_[1])])
             self.Q[s][a] += self.alpha*(r + self.gamma*self.Q[s_][a_] - self.Q[s][a])
         else:
             # terminal state update
@@ -199,7 +200,8 @@ class SARSAlearner(Learner):
         self.rewards.append(r)
 
     def end_update(self):
-        _ = 0
+        # update epsilon; geometric decay
+        self.eps *= (1.-self.eps_decay)
 
 class MCOffPolicyLearner(Learner):
     """
@@ -214,9 +216,9 @@ class MCOffPolicyLearner(Learner):
 
         Parameters
         ----------
-        s : string
+        s : int
             previous state
-        s_ : string
+        s_ : int
             new state. NOT USED
         a : (i,j) tuple
             previous action
@@ -249,22 +251,27 @@ class MCOffPolicyLearner(Learner):
         """
         Perform the Monte Carlo off-policy update of Q values.
         """
-        t = len(self.trajectory) - 1
-        # update Q table for full trajectory
-        for state, action in self.trajectory [::-1]:
-            action = tuple([tuple(action[0]), tuple(action[1])])
-            reward = self.reward_cache[t]
-            cum_reward = self.compute_cum_rewards(self.gamma, t, self.reward_cache) + reward
-            try:
-                self.C[state][action] += self.alpha
-            except KeyError:
-                if self.C.get(state) is None:
-                    self.C[state] = {}
-                self.C[state][action] = self.alpha
-            self.Q[state][action] += (cum_reward - self.Q[state][action]) * (self.alpha/self.C[state][action])
-            if action not in self.target_trajectory[t]:
-                break
-            t -= 1
+        if self.alpha != 0:
+            t = len(self.trajectory) - 1
+            # update Q table for full trajectory
+            for state, action in self.trajectory [::-1]:
+                action = tuple([tuple(action[0]), tuple(action[1])])
+                reward = self.reward_cache[t]
+                cum_reward = self.compute_cum_rewards(self.gamma, t, self.reward_cache) + reward
+                try:
+                    self.C[state][action] += self.alpha
+                except KeyError:
+                    if self.C.get(state) is None:
+                        self.C[state] = {}
+                    self.C[state][action] = self.alpha
+                self.Q[state][action] += (cum_reward - self.Q[state][action]) * (self.alpha/self.C[state][action])
+                
+                if list([list(action[0]),list(action[1])]) not in self.target_trajectory[t]:
+                    break
+                t -= 1
+
+        # update epsilon; geometric decay
+        self.eps *= (1.-self.eps_decay)
 
 
 class MCOnPolicyLearner(Learner):
@@ -280,9 +287,9 @@ class MCOnPolicyLearner(Learner):
 
         Parameters
         ----------
-        s : string
+        s : int
             previous state
-        s_ : string
+        s_ : int
             new state. NOT USED
         a : (i,j) tuple
             previous action
@@ -319,3 +326,6 @@ class MCOnPolicyLearner(Learner):
             except KeyError:
                 self.Q[state][action] = self.alpha * (cum_reward - self.Q[state][action])
             t += 1
+
+        # update epsilon; geometric decay
+        self.eps *= (1.-self.eps_decay)

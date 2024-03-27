@@ -8,23 +8,38 @@ import matplotlib.pylab as plt
 
 def plot_agent_reward(agent, name, *args, **kwargs):
     test_type = kwargs.get('t', None)
-    rewards = agent.rewards
+    rewards = agent[0]
+    train_time = agent[1]
+    rand_results = agent[2]
+    opt_results = agent[3]
     agent2 = kwargs.get('a2', None)
-    rewards2 = agent2.rewards if agent2 else None
+    if agent2:
+        rewards2 = agent2[0]
+        train_time2 = agent2[1]
+        rand_results2 = agent2[2]
+        opt_results2 = agent2[3]
     name2 = kwargs.get('n2', None)
     agent3 = kwargs.get('a3', None)
-    rewards3 = agent3.rewards if agent3 else None
+    if agent3:
+        rewards3 = agent3[0]
+        train_time3 = agent3[1]
+        rand_results3 = agent3[2]
+        opt_results3 = agent3[3]
     name3 = kwargs.get('n3', None)
     agent4 = kwargs.get('a4', None)
-    rewards4 = agent4.rewards if agent4 else None
+    if agent4:
+        rewards4 = agent4[0]
+        train_time4 = agent4[1]
+        rand_results4 = agent4[2]
+        opt_results4 = agent4[3]
     name4 = kwargs.get('n4', None)
     print(test_type)
     match test_type:
         case "rand":
             plt.rcParams["figure.autolayout"] = True
-            plt.plot(agent.testing_results_rand[0], label="Wins")
-            plt.plot(agent.testing_results_rand[1], label="Losses")
-            plt.plot(agent.testing_results_rand[2], label="Draws")
+            plt.plot(rand_results[0], label="Wins")
+            plt.plot(rand_results[1], label="Losses")
+            plt.plot(rand_results[2], label="Draws")
             plt.title(f'{name} Results vs Random Moves')
             plt.ylabel('Number of Test Games')
             plt.xlabel('Training Games (per hundred)')
@@ -32,9 +47,9 @@ def plot_agent_reward(agent, name, *args, **kwargs):
             plt.show()
         case "opt":
             plt.rcParams["figure.autolayout"] = True
-            plt.plot(agent.testing_results_opt[0], label="Wins")
-            plt.plot(agent.testing_results_opt[1], label="Losses")
-            plt.plot(agent.testing_results_opt[2], label="Draws")
+            plt.plot(opt_results[0], label="Wins")
+            plt.plot(opt_results[1], label="Losses")
+            plt.plot(opt_results[2], label="Draws")
             plt.title(f'{name} Results vs Optimal Moves')
             plt.ylabel('Number of Test Games')
             plt.xlabel('Training Games (per hundred)')
@@ -45,17 +60,17 @@ def plot_agent_reward(agent, name, *args, **kwargs):
             fig, (ax1, ax2) = plt.subplots(2)
             fig.suptitle(f'{name} Results vs Random and Optimal Moves')
             # plot of random moves
-            ax1.plot(agent.testing_results_rand[0], label="Wins")
-            ax1.plot(agent.testing_results_rand[1], label="Losses")
-            ax1.plot(agent.testing_results_rand[2], label="Draws")
+            ax1.plot(rand_results[0], label="Wins")
+            ax1.plot(rand_results[1], label="Losses")
+            ax1.plot(rand_results[2], label="Draws")
             ax1.set_title(f'vs Random Moves')
             ax1.set_ylabel('Number of Test Games')
             ax1.set_xlabel('Training Games (per hundred)')
             ax1.legend(loc='center right')
             # plot of optimal moves
-            ax2.plot(agent.testing_results_opt[0], label="Wins")
-            ax2.plot(agent.testing_results_opt[1], label="Losses")
-            ax2.plot(agent.testing_results_opt[2], label="Draws")
+            ax2.plot(opt_results[0], label="Wins")
+            ax2.plot(opt_results[1], label="Losses")
+            ax2.plot(opt_results[2], label="Draws")
             ax2.set_title(f'vs Optimal Moves')
             ax2.set_ylabel('Number of Test Games')
             ax2.set_xlabel('Training Games (per hundred)')
@@ -63,7 +78,7 @@ def plot_agent_reward(agent, name, *args, **kwargs):
             plt.show()
         case "time":
             x = np.array([name,name2,name3,name4])
-            y = np.array([agent.train_time, agent2.train_time, agent3.train_time, agent4.train_time])
+            y = np.array([train_time, train_time2, train_time3, train_time4])
             plt.ylim((y.min() - (y.min()*.05)), (y.max() + (y.max()*.05)))
             plt.bar(x,y)
             plt.title('Time to Train Per Agent')
@@ -73,9 +88,9 @@ def plot_agent_reward(agent, name, *args, **kwargs):
         case "totalrand":
             names = (name,name2,name3,name4)
             agent_data_rand = {
-                'Wins': (sum(agent.testing_results_rand[0]), sum(agent2.testing_results_rand[0]), sum(agent3.testing_results_rand[0]), sum(agent4.testing_results_rand[0])),
-                'Losses': (sum(agent.testing_results_rand[1]), sum(agent2.testing_results_rand[1]), sum(agent3.testing_results_rand[1]), sum(agent4.testing_results_rand[1])),
-                'Draws': (sum(agent.testing_results_rand[2]), sum(agent2.testing_results_rand[2]), sum(agent3.testing_results_rand[2]), sum(agent4.testing_results_rand[2]))
+                'Wins': (sum(rand_results[0]), sum(rand_results2[0]), sum(rand_results3[0]), sum(rand_results4[0])),
+                'Losses': (sum(rand_results[1]), sum(rand_results2[1]), sum(rand_results3[1]), sum(rand_results4[1])),
+                'Draws': (sum(rand_results[2]), sum(rand_results2[2]), sum(rand_results3[2]), sum(rand_results4[2]))
             }
             x = np.arange(len(names))  # the label locations
             width = 0.25  # the width of the bars
@@ -99,8 +114,9 @@ def plot_agent_reward(agent, name, *args, **kwargs):
         case "totalopt":
             names = (name,name2,name3,name4)
             agent_data_opt = {
-                'Losses': (sum(agent.testing_results_opt[1]), sum(agent2.testing_results_opt[1]), sum(agent3.testing_results_opt[1]), sum(agent4.testing_results_opt[1])),
-                'Draws': (sum(agent.testing_results_opt[2]), sum(agent2.testing_results_opt[2]), sum(agent3.testing_results_opt[2]), sum(agent4.testing_results_opt[2]))
+                'Wins': (sum(opt_results[0]), sum(opt_results2[0]), sum(opt_results3[0]), sum(opt_results4[0]),), 
+                'Losses': (sum(opt_results[1]), sum(opt_results2[1]), sum(opt_results3[1]), sum(opt_results4[1])),
+                'Draws': (sum(opt_results[2]), sum(opt_results2[2]), sum(opt_results3[2]), sum(opt_results4[2]))
             } 
             x = np.arange(len(names))  # the label locations
             width = 0.25  # the width of the bars
@@ -154,6 +170,12 @@ if __name__ == "__main__":
         sys.exit(0)
     with open(args.path, 'rb') as f:
         agent = pickle.load(f)
+        rewards = agent.rewards
+        time = agent.train_time
+        rand_results = agent.testing_results_rand
+        opt_results = agent.testing_results_opt
+        agentinfo = [rewards, time, rand_results, opt_results]
+        print("Agent 1 loaded")
 
     if args.path2:
         if not os.path.isfile(args.path2):
@@ -161,8 +183,14 @@ if __name__ == "__main__":
             sys.exit(0)
         with open(args.path2, 'rb') as g:
             agent2 = pickle.load(g)
+            rewards2 = agent2.rewards
+            time2 = agent2.train_time
+            rand_results2 = agent2.testing_results_rand
+            opt_results2 = agent2.testing_results_opt
+            agent2info = [rewards2, time2, rand_results2, opt_results2]
+            print("Agent 2 loaded")
     else:
-        agent2 = None
+        agent2info = None
 
     if args.path3:
         if not os.path.isfile(args.path3):
@@ -170,8 +198,14 @@ if __name__ == "__main__":
             sys.exit(0)
         with open(args.path3, 'rb') as h:
             agent3 = pickle.load(h)
+            rewards3 = agent3.rewards
+            time3 = agent3.train_time
+            rand_results3 = agent3.testing_results_rand
+            opt_results3 = agent3.testing_results_opt
+            agent3info = [rewards3, time3, rand_results3, opt_results3]
+            print("Agent 3 loaded")
     else:
-        agent3 = None
+        agent3info = None
 
     if args.path4:
         if not os.path.isfile(args.path4):
@@ -179,14 +213,21 @@ if __name__ == "__main__":
             sys.exit(0)
         with open(args.path4, 'rb') as i:
             agent4 = pickle.load(i)
+            rewards4 = agent4.rewards
+            time4 = agent4.train_time
+            rand_results4 = agent4.testing_results_rand
+            opt_results4 = agent4.testing_results_opt
+            agent4info = [rewards4, time4, rand_results4, opt_results4]
+            print("Agent 4 loaded")
+            
     else:
         agent4 = None
 
     if agent4 is not None:
-        plot_agent_reward(agent, args.name, a2=agent2, n2=args.name2, a3=agent3, n3=args.name3, a4=agent4, n4=args.name4, t=args.test)
+        plot_agent_reward(agentinfo, args.name, a2=agent2info, n2=args.name2, a3=agent3info, n3=args.name3, a4=agent4info, n4=args.name4, t=args.test)
     elif agent3 is not None:
-        plot_agent_reward(agent, args.name, a2=agent2, n2=args.name2, a3=agent3, n3=args.name3)
+        plot_agent_reward(agentinfo, args.name, a2=agent2info, n2=args.name2, a3=agent3info, n3=args.name3)
     elif agent2 is not None:
-        plot_agent_reward(agent, args.name, a2=agent2, n2=args.name2)
+        plot_agent_reward(agentinfo, args.name, a2=agent2info, n2=args.name2)
     else:
-        plot_agent_reward(agent, args.name, t=args.test)
+        plot_agent_reward(agentinfo, args.name, t=args.test)

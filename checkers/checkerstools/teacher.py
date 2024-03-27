@@ -45,7 +45,7 @@ class Alpha_beta(Teacher):
     so that you can make a more robust set of training AI
     """
     
-    def __init__(self, level=0.0, player_id=True, depth=2, the_board=None):
+    def __init__(self, level=0.0, player_id=True, depth=2, the_board=None, use_dict=True):
         """
         Initialize the instance variables to be stored by the AI. 
         """
@@ -61,6 +61,7 @@ class Alpha_beta(Teacher):
         self.p_tokens = []
         self.dimensions = []
         self.draw_counter = 0
+        self.use_dict = use_dict
 
     def new_board(self, board, board_key):
         """
@@ -72,47 +73,48 @@ class Alpha_beta(Teacher):
         self.board_key = board_key
         self.draw_counter = board.draw_counter
 
-    def save_moves_dict(self, filename = None):
-        while True:
-            try:
-                # Store data (serialize)
-                if filename is None:
+    def save_moves_dict(self):
+        if self.use_dict == True:
+            while True:
+                try:
+                    # Store data (serialize)
                     # Syncs the moves_dict with the file
                     if os.path.isfile(f'checkers_table{self.depth}.pkl'):
                         with open(f'checkers_table{self.depth}.pkl', 'rb') as handle:
                                 self.moves_dict.update(pickle.load(handle))
-                    # Save the new combined moves_dict
-#                    with open(f'{self.agent_id}teachinfo.txt', 'a') as f:
-#                        f.write(f"\n\nSaving. Moves dictionary length: {len(self.moves_dict)}\n\n")
-                    
-                    with open(f'checkers_table{self.depth}.pkl', 'wb') as handle:
-                        pickle.dump(self.moves_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
-                else:
-                    with open(filename, 'wb') as handle:
-                        pickle.dump(self.moves_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
-                break
-            except pickle.UnpicklingError:
-                print("Error saving moves dictionary")
-            except EOFError:
-                print("Error saving moves dictionary")
+                        # Save the new combined moves_dict
+    #                    with open(f'{self.agent_id}teachinfo.txt', 'a') as f:
+    #                        f.write(f"\n\nSaving. Moves dictionary length: {len(self.moves_dict)}\n\n")
+                        with open(f'checkers_table{self.depth}.pkl', 'wb') as handle:
+                            pickle.dump(self.moves_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
+                    else:
+                        with open(f'checkers_table{self.depth}.pkl', 'wb') as handle:
+                            pickle.dump(self.moves_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
+                    self.moves_dict = {}
+                    break
+                except pickle.UnpicklingError:
+                    print("Error saving moves dictionary")
+                except EOFError:
+                    print("Error saving moves dictionary")
              
     def load_moves_dict(self, filename = None):
-        while True:
-            try:
-                # Load data (deserialize)
-                if filename is None:
-                    if os.path.isfile(f'checkers_table{self.depth}.pkl'):
-                        with open(f'checkers_table{self.depth}.pkl', 'rb') as handle:
-                            self.moves_dict = pickle.load(handle)
-                else:
-                    if os.path.isfile(filename):
-                        with open(filename, 'rb') as handle:
-                            self.moves_dict = pickle.load(handle)
-                break
-            except pickle.UnpicklingError:
-                print("Error loading moves dictionary")
-            except EOFError:
-                print("Error loading moves dictionary")
+        if self.use_dict == True:
+            while True:
+                try:
+                    # Load data (deserialize)
+                    if filename is None:
+                        if os.path.isfile(f'checkers_table{self.depth}.pkl'):
+                            with open(f'checkers_table{self.depth}.pkl', 'rb') as handle:
+                                self.moves_dict = pickle.load(handle)
+                    else:
+                        if os.path.isfile(filename):
+                            with open(filename, 'rb') as handle:
+                                self.moves_dict = pickle.load(handle)
+                    break
+                except pickle.UnpicklingError:
+                    print("Error loading moves dictionary")
+                except EOFError:
+                    print("Error loading moves dictionary")
 
     def alpha_beta(self, board_key, depth, alpha, beta, maximizing_player):
         """
@@ -122,9 +124,14 @@ class Alpha_beta(Teacher):
         # make new board
         board = Board(self.p_tokens, self.dimensions, board_key, self.draw_counter, maximizing_player)
 
+        if self.use_dict == True:
+            if board_key in self.moves_dict:
+                move = self.moves_dict[board_key]
+    #            with open(f'{self.agent_id}{self.depth}teachinfo.txt', 'a') as f:
+    #                f.write(f"Returning saved move {move} for board ({board_key})\n")
+                return move
+
         self.tested_states += 1
-        if board_key in self.moves_dict:
-            return self.moves_dict[board_key]
 
         if board.get_outcome() != 0:
             if board.get_number_of_pieces_and_kings(board.player_turn) == [0,0]:
@@ -144,8 +151,10 @@ class Alpha_beta(Teacher):
         if depth == 0:
             players_info = board.get_number_of_pieces_and_kings()
             if board.player_turn != maximizing_player:
-                return (players_info[1] + 2 * players_info[3]) - (players_info[0] + 2 * players_info[2]), None
-            return (players_info[0] + 2 * players_info[2]) - (players_info[1] + 2 * players_info[3]), None
+                reward = (players_info[1] + 2 * players_info[3]) - (players_info[0] + 2 * players_info[2])
+                return reward, None
+            reward = (players_info[0] + 2 * players_info[2]) - (players_info[1] + 2 * players_info[3])
+            return reward, None
         possible_moves = board.get_possible_next_moves()
         potential_spots = board.get_potential_spots_from_moves(possible_moves)
 
@@ -190,7 +199,6 @@ class Alpha_beta(Teacher):
     
     def get_next_move(self):
         self.tested_states = 0
-        self.teach_time =  time.perf_counter()
 
         possible_actions = self.board.get_possible_next_moves()
 
@@ -204,22 +212,25 @@ class Alpha_beta(Teacher):
         # Does not test if there is only one possible action
         if len(possible_actions) == 1:
             return possible_actions[0]
-            
-        # If the board configuration has not been seen before, use alpha-beta to decide the next move
-        if self.board_key not in self.moves_dict:
-            alpha_beta_results = self.alpha_beta(self.board_key, self.depth, float('-inf'), float('inf'), self.player_id)
-#            with open(f'{self.agent_id}teachinfo.txt', 'a') as f:
-#                f.write(f"Found teaching time: {time.perf_counter()-self.teach_time}.\n")
-            self.moves_dict[self.board_key] = alpha_beta_results
-            selected_move = alpha_beta_results[1]
-            
+        
+        if self.use_dict == True:
+            # If the board configuration has not been seen before, use alpha-beta to decide the next move
+            if self.board_key not in self.moves_dict:
+                alpha_beta_results = self.alpha_beta(self.board_key, self.depth, float('-inf'), float('inf'), self.player_id)
+    #            with open(f'{self.agent_id}{self.depth}teachinfo.txt', 'a') as f:
+    #                f.write(f"Genning new move\n")
+                self.moves_dict[self.board_key] = alpha_beta_results
+                selected_move = alpha_beta_results[1] 
+            else:
+    #            with open(f'{self.agent_id}{self.depth}teachinfo.txt', 'a') as f:
+    #                f.write(f"Finding old move\n")
+                selected_move = self.moves_dict[self.board_key][1]
+    #        with open(f'{self.agent_id}{self.depth}teachinfo.txt', 'a') as f:
+    #            f.write(f"Teacher returning move {selected_move} for board ({self.board_key})\n")
+    #            f.write(f"Total teaching time: {self.teach_time}. Tested states: {self.tested_states}\n\n")
         else:
-
-            selected_move = self.moves_dict[self.board_key][1]
-        self.teach_time = time.perf_counter() - self.teach_time
-#        with open(f'{self.agent_id}teachinfo.txt', 'a') as f:
-#            f.write(f"Teacher returning move {selected_move} for board ({self.board_key})\n")
-#            f.write(f"Total teaching time: {self.teach_time}. Tested states: {self.tested_states}\n\n")
+            alpha_beta_results = self.alpha_beta(self.board_key, self.depth, float('-inf'), float('inf'), self.player_id)
+            selected_move = alpha_beta_results[1]
         
         return selected_move
  
@@ -254,6 +265,7 @@ class Board:
             for i in range(self.WIDTH):
                 answer += spots[j][i]
                 answer *= 10
+        answer = answer // 10
         return answer
 
     def get_spots(self, board_key):
@@ -262,9 +274,9 @@ class Board:
         """
         answer = []
         board_key = str(board_key)
-        if len(board_key) != self.HEIGHT * self.WIDTH:
+        if len(board_key) < (self.HEIGHT * self.WIDTH):
             for j in range(self.WIDTH*self.HEIGHT - len(board_key)):
-                board_key = "0" + board_key
+                board_key = f"0{board_key}"
         for j in range(self.HEIGHT):
             answer.append([])
             for i in range(self.WIDTH):
