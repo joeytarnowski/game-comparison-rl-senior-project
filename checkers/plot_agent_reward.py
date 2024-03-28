@@ -4,7 +4,6 @@ import pickle
 import sys
 import numpy as np
 import matplotlib.pylab as plt
-    
 
 def plot_agent_reward(agent, name, *args, **kwargs):
     test_type = kwargs.get('t', None)
@@ -129,7 +128,7 @@ def plot_agent_reward(agent, name, *args, **kwargs):
                 rects = ax.bar(x + offset, num, width, label=result)
                 ax.bar_label(rects, padding=3)
                 multiplier += 1
-            ax.set_ylim(0, (max(agent_data_opt['Draws']) + (max(agent_data_opt['Draws'])*.05)))
+            ax.set_ylim(0, (max(agent_data_opt['Losses']) + (max(agent_data_opt['Losses'])*.05)))
             # Add some text for labels, title and custom x-axis tick labels, etc.
             ax.set_ylabel('Number of Games')
             ax.set_title('Win/Loss/Draw Results vs Optimal Moves')
@@ -165,45 +164,33 @@ if __name__ == "__main__":
     parser.add_argument("-t", "--test", type=str, required=False)
     args = parser.parse_args()
 
+    agentinfo, agent2info, agent3info, agent4info = [], [], [], []
+    with open('res.pkl', 'rb') as f:
+        res = pickle.load(f)
+
     if not os.path.isfile(args.path):
         print("Cannot load agent: file does not exist. Quitting.")
         sys.exit(0)
-    with open(args.path, 'rb') as f:
-        agent = pickle.load(f)
-        rewards = agent.rewards
-        time = agent.train_time
-        rand_results = agent.testing_results_rand
-        opt_results = agent.testing_results_opt
-        agentinfo = [rewards, time, rand_results, opt_results]
-        print("Agent 1 loaded")
+    agentinfo = res[args.path]
+    print("Agent loaded")
+
 
     if args.path2:
         if not os.path.isfile(args.path2):
             print("Cannot load agent: file 2 does not exist. Quitting.")
             sys.exit(0)
-        with open(args.path2, 'rb') as g:
-            agent2 = pickle.load(g)
-            rewards2 = agent2.rewards
-            time2 = agent2.train_time
-            rand_results2 = agent2.testing_results_rand
-            opt_results2 = agent2.testing_results_opt
-            agent2info = [rewards2, time2, rand_results2, opt_results2]
-            print("Agent 2 loaded")
+        agent2info = res[args.path2]
+        print("Agent 2 loaded")
     else:
         agent2info = None
+
 
     if args.path3:
         if not os.path.isfile(args.path3):
             print("Cannot load agent: file 3 does not exist. Quitting.")
             sys.exit(0)
-        with open(args.path3, 'rb') as h:
-            agent3 = pickle.load(h)
-            rewards3 = agent3.rewards
-            time3 = agent3.train_time
-            rand_results3 = agent3.testing_results_rand
-            opt_results3 = agent3.testing_results_opt
-            agent3info = [rewards3, time3, rand_results3, opt_results3]
-            print("Agent 3 loaded")
+        agent3info = res[args.path3]
+        print("Agent 3 loaded")
     else:
         agent3info = None
 
@@ -211,23 +198,16 @@ if __name__ == "__main__":
         if not os.path.isfile(args.path4):
             print("Cannot load agent: file 4 does not exist. Quitting.")
             sys.exit(0)
-        with open(args.path4, 'rb') as i:
-            agent4 = pickle.load(i)
-            rewards4 = agent4.rewards
-            time4 = agent4.train_time
-            rand_results4 = agent4.testing_results_rand
-            opt_results4 = agent4.testing_results_opt
-            agent4info = [rewards4, time4, rand_results4, opt_results4]
-            print("Agent 4 loaded")
-            
+        agent4info = res[args.path4]
+        print("Agent 4 loaded")
     else:
-        agent4 = None
+        agent4info = None
 
-    if agent4 is not None:
+    if agent4info is not None:
         plot_agent_reward(agentinfo, args.name, a2=agent2info, n2=args.name2, a3=agent3info, n3=args.name3, a4=agent4info, n4=args.name4, t=args.test)
-    elif agent3 is not None:
+    elif agent3info is not None:
         plot_agent_reward(agentinfo, args.name, a2=agent2info, n2=args.name2, a3=agent3info, n3=args.name3)
-    elif agent2 is not None:
+    elif agent2info is not None:
         plot_agent_reward(agentinfo, args.name, a2=agent2info, n2=args.name2)
     else:
         plot_agent_reward(agentinfo, args.name, t=args.test)
