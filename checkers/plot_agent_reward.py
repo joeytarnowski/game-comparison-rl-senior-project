@@ -5,6 +5,21 @@ import sys
 import numpy as np
 import matplotlib.pylab as plt
 
+def best_fit(X, Y):
+    xbar = sum(X)/len(X)
+    ybar = sum(Y)/len(Y)
+    n = len(Y) # or len(Y)
+
+    numer = sum([xi*yi for xi,yi in zip(X,Y)]) - n * xbar * ybar
+    denum = sum([xi**2 for xi in X]) - n * xbar**2
+
+    b = numer / denum
+    a = ybar - b * xbar
+
+    print('best fit line:\ny = {:.2f} + {:.2f}x'.format(a, b))
+
+    return a, b
+
 def plot_agent_reward(agent, name, *args, **kwargs):
     test_type = kwargs.get('t', None)
     rewards = agent[0]
@@ -136,6 +151,56 @@ def plot_agent_reward(agent, name, *args, **kwargs):
             ax.legend(loc='upper left', ncols=2)
 
             plt.show()
+        case "opt_best_fit":
+            X = [i for i in range(len(opt_results[2]))]
+            Y1 = opt_results[2]
+            a1, b1 = best_fit(X, Y1)
+            Y2 = opt_results2[2]
+            a2, b2 = best_fit(X, Y2)
+            Y3 = opt_results3[2]
+            a3, b3 = best_fit(X, Y3)
+            Y4 = opt_results4[2]
+            a4, b4 = best_fit(X, Y4)
+
+            plt.rcParams["figure.autolayout"] = True
+            yfit1 = [a1 + b1 * xi for xi in X]
+            yfit2 = [a2 + b2 * xi for xi in X]
+            yfit3 = [a3 + b3 * xi for xi in X]
+            yfit4 = [a4 + b4 * xi for xi in X]
+            plt.plot(X, yfit1, label=name)
+            plt.plot(X, yfit2, label=name2)
+            plt.plot(X, yfit3, label=name3)
+            plt.plot(X, yfit4, label=name4)
+            plt.title('Line of Best Fit for Draws vs. Optimal Moves')
+            plt.ylabel('Draws')
+            plt.xlabel('Training Games (per hundred)')
+            plt.legend()
+            plt.show()
+        case "rand_best_fit":
+            X = [i for i in range(len(rand_results[0]))]
+            Y1 = rand_results[0]
+            a1, b1 = best_fit(X, Y1)
+            Y2 = rand_results2[0]
+            a2, b2 = best_fit(X, Y2)
+            Y3 = rand_results3[0]
+            a3, b3 = best_fit(X, Y3)
+            Y4 = rand_results4[0]
+            a4, b4 = best_fit(X, Y4)
+
+            plt.rcParams["figure.autolayout"] = True
+            yfit1 = [a1 + b1 * xi for xi in X]
+            yfit2 = [a2 + b2 * xi for xi in X]
+            yfit3 = [a3 + b3 * xi for xi in X]
+            yfit4 = [a4 + b4 * xi for xi in X]
+            plt.plot(X, yfit1, label=name)
+            plt.plot(X, yfit2, label=name2)
+            plt.plot(X, yfit3, label=name3)
+            plt.plot(X, yfit4, label=name4)
+            plt.title('Line of Best Fit for Wins vs. Random Moves')
+            plt.ylabel('Wins')
+            plt.xlabel('Training Games (per hundred)')
+            plt.legend()
+            plt.show()
         case _:
             """ Function to plot agent's accumulated reward vs. iteration """
             plt.rcParams["figure.autolayout"] = True
@@ -165,13 +230,14 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     agentinfo, agent2info, agent3info, agent4info = [], [], [], []
-    with open('res.pkl', 'rb') as f:
+    with open('Results/res.pkl', 'rb') as f:
         res = pickle.load(f)
 
     if not os.path.isfile(args.path):
         print("Cannot load agent: file does not exist. Quitting.")
         sys.exit(0)
-    agentinfo = res[args.path]
+    reskey = args.path[8:]
+    agentinfo = res[reskey]
     print("Agent loaded")
 
 
@@ -179,7 +245,8 @@ if __name__ == "__main__":
         if not os.path.isfile(args.path2):
             print("Cannot load agent: file 2 does not exist. Quitting.")
             sys.exit(0)
-        agent2info = res[args.path2]
+        reskey2 = args.path2[8:]
+        agent2info = res[reskey2]
         print("Agent 2 loaded")
     else:
         agent2info = None
@@ -189,7 +256,8 @@ if __name__ == "__main__":
         if not os.path.isfile(args.path3):
             print("Cannot load agent: file 3 does not exist. Quitting.")
             sys.exit(0)
-        agent3info = res[args.path3]
+        reskey3 = args.path3[8:]
+        agent3info = res[reskey3]
         print("Agent 3 loaded")
     else:
         agent3info = None
@@ -198,7 +266,8 @@ if __name__ == "__main__":
         if not os.path.isfile(args.path4):
             print("Cannot load agent: file 4 does not exist. Quitting.")
             sys.exit(0)
-        agent4info = res[args.path4]
+        reskey4 = args.path4[8:]
+        agent4info = res[reskey4]
         print("Agent 4 loaded")
     else:
         agent4info = None

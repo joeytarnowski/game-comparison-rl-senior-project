@@ -5,6 +5,20 @@ import sys
 import numpy as np
 import matplotlib.pylab as plt
     
+def best_fit(X, Y):
+    xbar = sum(X)/len(X)
+    ybar = sum(Y)/len(Y)
+    n = len(Y) # or len(Y)
+
+    numer = sum([xi*yi for xi,yi in zip(X,Y)]) - n * xbar * ybar
+    denum = sum([xi**2 for xi in X]) - n * xbar**2
+
+    b = numer / denum
+    a = ybar - b * xbar
+
+    print('best fit line:\ny = {:.2f} + {:.2f}x'.format(a, b))
+
+    return a, b
 
 def plot_agent_reward(agent, name, *args, **kwargs):
     test_type = kwargs.get('t', None)
@@ -121,6 +135,57 @@ def plot_agent_reward(agent, name, *args, **kwargs):
             ax.legend(loc='upper left', ncols=2)
 
             plt.show()
+        case "opt_best_fit":
+            X = [i for i in range(len(agent.testing_results_opt[2]))]
+            Y1 = agent.testing_results_opt[2]
+            a1, b1 = best_fit(X, Y1)
+            Y2 = agent2.testing_results_opt[2]
+            a2, b2 = best_fit(X, Y2)
+            Y3 = agent3.testing_results_opt[2]
+            a3, b3 = best_fit(X, Y3)
+            Y4 = agent4.testing_results_opt[2]
+            a4, b4 = best_fit(X, Y4)
+
+            plt.rcParams["figure.autolayout"] = True
+            yfit1 = [a1 + b1 * xi for xi in X]
+            yfit2 = [a2 + b2 * xi for xi in X]
+            yfit3 = [a3 + b3 * xi for xi in X]
+            yfit4 = [a4 + b4 * xi for xi in X]
+            plt.plot(X, yfit1, label=name)
+            plt.plot(X, yfit2, label=name2)
+            plt.plot(X, yfit3, label=name3)
+            plt.plot(X, yfit4, label=name4)
+            plt.title('Line of Best Fit for Draws vs. Optimal Moves')
+            plt.ylabel('Draws')
+            plt.xlabel('Training Games (per hundred)')
+            plt.legend()
+            plt.show()
+        case "rand_best_fit":
+            X = [i for i in range(len(agent.testing_results_rand[0]))]
+            Y1 = agent.testing_results_rand[0]
+            a1, b1 = best_fit(X, Y1)
+            Y2 = agent2.testing_results_rand[0]
+            a2, b2 = best_fit(X, Y2)
+            Y3 = agent3.testing_results_rand[0]
+            a3, b3 = best_fit(X, Y3)
+            Y4 = agent4.testing_results_rand[0]
+            a4, b4 = best_fit(X, Y4)
+
+            plt.rcParams["figure.autolayout"] = True
+            yfit1 = [a1 + b1 * xi for xi in X]
+            yfit2 = [a2 + b2 * xi for xi in X]
+            yfit3 = [a3 + b3 * xi for xi in X]
+            yfit4 = [a4 + b4 * xi for xi in X]
+            plt.plot(X, yfit1, label=name)
+            plt.plot(X, yfit2, label=name2)
+            plt.plot(X, yfit3, label=name3)
+            plt.plot(X, yfit4, label=name4)
+            plt.title('Line of Best Fit for Wins vs. Random Moves')
+            plt.ylabel('Wins')
+            plt.xlabel('Training Games (per hundred)')
+            plt.legend()
+            plt.show()
+
         case _:
             """ Function to plot agent's accumulated reward vs. iteration """
             plt.rcParams["figure.autolayout"] = True

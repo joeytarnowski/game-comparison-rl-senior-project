@@ -7,6 +7,7 @@ import time
 from tictactoe.agent import Qlearner, SARSAlearner, MCOffPolicyLearner, MCOnPolicyLearner
 from tictactoe.game import Game
 from tictactoe.dictteacher import Teacher
+from tictactoe.gui import TicTacToeGUI
 
 
 class GameLearning(object):
@@ -17,11 +18,28 @@ class GameLearning(object):
     """
     def __init__(self, args, alpha=0.5, gamma=0.9, epsilon=1, overridecheck=False):
         self.eps_decay = 0.0001
+        self.gui = TicTacToeGUI()
+        if args.teacher_episodes is None:
+            args.agent_type = self.gui.ask_agent()
+            args.load = True
+
+        # set default path
+        if args.path is None:
+            match args.agent_type:
+                case 'q':
+                    args.path = os.path.join('Demo','q_agent.pkl')
+                case 'mcon':
+                    args.path = os.path.join('Demo','mcon_agent.pkl')
+                case 'mcoff':
+                    args.path = os.path.join('Demo','mcoff_agent.pkl')
+                case _:
+                    args.path = os.path.join('Demo', 'sarsa_agent.pkl')
 
         if args.load:
             # load an existing agent and continue training
             if not os.path.isfile(args.path):
-                raise ValueError("Cannot load agent: file does not exist.")
+                print("Current Working Directory:", os.getcwd())
+                raise ValueError(f"Cannot load agent: file {args.path} does not exist.")
             with open(args.path, 'rb') as f:
                 agent = pickle.load(f)
         else:
@@ -53,12 +71,11 @@ class GameLearning(object):
 
     def beginPlaying(self):
         """ Loop through game iterations with a human player. """
-        print("Welcome to Tic-Tac-Toe. You are 'X' and the computer is 'O'.")
+        self.agent.eps = 0
 
-        def play_again():
+        def play_again(play):
             print("Games played: %i" % self.games_played)
             while True:
-                play = input("Do you want to play again? [y/n]: ")
                 if play == 'y' or play == 'yes':
                     return True
                 elif play == 'n' or play == 'no':
@@ -68,12 +85,14 @@ class GameLearning(object):
 
         while True:
             game = Game(self.agent)
+            game.set_GUI(self.gui)
             game.start()
             self.games_played += 1
             self.agent.save(self.path)
-            if not play_again():
+            if not play_again(game.play_again):
                 print("OK. Quitting.")
                 break
+            self.gui.reset_game()
 
     def beginTeaching(self, episodes):
         """ Loop through game iterations with a teaching agent. """
@@ -158,15 +177,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
     print(args)
 
-    # set default path
-    if args.path is None:
-        match args.agent_type:
-            case 'q':
-                args.path = 'q_agent.pkl'
-            case 'mcon':
-                args.path = 'mcon_agent.pkl'
-            case 'mcoff':
-                args.path = 'mcoff_agent.pkl'
-            case _:
-                args.path = 'sarsa_agent.pkl'
     initGame(args)

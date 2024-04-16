@@ -7,37 +7,48 @@ class Game:
         self.teacher = teacher
         # initialize the game board
         self.board = [['-', '-', '-'], ['-', '-', '-'], ['-', '-', '-']]
+        self.gui = None
+        self.play_again = None
 
-    def playerMove(self):
+    def set_GUI(self, gui):
+        self.gui = gui
+
+    def playerMove(self, first_move=False):
         """
         Query player for a move and update the board accordingly.
         """
         if self.teacher is not None:
-            action = self.teacher.makeMove(self.board)
-            self.board[action[0]][action[1]] = 'X'
+            if first_move:
+                save_level = self.teacher.ability_level
+                self.teacher.ability_level = 0
+                action = self.teacher.makeMove(self.board)
+                self.board[action[0]][action[1]] = 'X'
+                self.teacher.ability_level = save_level
+            else:
+                action = self.teacher.makeMove(self.board)
+                self.board[action[0]][action[1]] = 'X'
         else:
-            printBoard(self.board)
+            self.gui.update_board(self.board)
             while True:
-                move = input("Your move! Please select a row and column from 0-2 "
-                             "in the format row,col: ")
-                print('\n')
+                move = self.gui.get_move()
                 try:
-                    row, col = int(move[0]), int(move[2])
-                except ValueError:
-                    print("INVALID INPUT! Please use the correct format.")
+                    row, col = int(move[0]), int(move[1])
+                except TypeError:
                     continue
                 if row not in range(3) or col not in range(3) or not self.board[row][col] == '-':
-                    print("INVALID MOVE! Choose again.")
+                    self.gui.display_error("INVALID MOVE! Choose again.")
                     continue
                 self.board[row][col] = 'X'
+                self.gui.reset_move()
+                self.gui.update_board(self.board)
                 break
         
-
     def agentMove(self, action):
         """
         Update board according to agent's move.
         """
         self.board[action[0]][action[1]] = 'O'
+        self.gui.update_board(self.board)
 
     def checkForWin(self, key):
         """
@@ -87,16 +98,14 @@ class Game:
         """
         if self.checkForWin(key):
             if self.teacher is None:
-                printBoard(self.board)
                 if key == 'X':
-                    print("Player wins!")
+                    self.play_again = self.gui.display_winner("win")
                 else:
-                    print("RL agent wins!")
+                    self.play_again = self.gui.display_winner("lose")
             return 1
         elif self.checkForDraw():
             if self.teacher is None:
-                printBoard(self.board)
-                print("It's a draw!")
+                self.play_again = self.gui.display_winner("draw")
             return 0
         return -1
 
@@ -113,7 +122,7 @@ class Game:
         """
         # Initialize the agent's state and action
         if player_first:
-            self.playerMove()
+            self.playerMove(first_move=True)
         self.agent.ep_init()
         prev_state = getStateKey(self.board)
         prev_action = self.agent.get_action(prev_state)
@@ -167,7 +176,7 @@ class Game:
                 self.playGame(player_first=True)
         else:
             while True:
-                response = input("Would you like to go first? [y/n]: ")
+                response = self.gui.ask_go_first()
                 print('')
                 if response == 'n' or response == 'no':
                     self.playGame(player_first=False)

@@ -158,15 +158,15 @@ class GameLearning(object):
             game = Game(self.agent, teacher=test_teacher)
             game.start()
             i += 1
-        test_res = [self.agent.num_wins, self.agent.num_losses, self.agent.num_draws, game.total_moves]
+        test_res = [self.agent.num_wins, self.agent.num_losses, self.agent.num_draws]
 #        self.agent = None
 #        with open(self.path, 'rb') as f:
 #            self.agent = pickle.load(f)
         if is_rand:
-            for i in range(4):
+            for i in range(3):
                 self.agent.testing_results_rand[i].append(test_res[i])
         else:
-            for i in range(4):
+            for i in range(3):
                 self.agent.testing_results_opt[i].append(test_res[i])
             test_teacher.save_moves_dict()
         # Restore agent to previous state

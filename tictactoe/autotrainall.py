@@ -7,7 +7,7 @@ Trains all agents for set amount of games
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train Tic-Tac-Toe AI.")
-    parser.add_argument("-t", "--teacher_episodes", default=1000, type=int,
+    parser.add_argument("-t", "--teacher_episodes", default=50000, type=int,
                     help="employ teacher agent who knows the optimal "
                             "strategy and will play for TEACHER_EPISODES games")
     temp_args = parser.parse_args()
