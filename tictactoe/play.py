@@ -69,7 +69,7 @@ class GameLearning(object):
         self.path = args.path
         self.agent = agent
 
-    def beginPlaying(self):
+    def begin_playing(self):
         """ Loop through game iterations with a human player. """
         self.agent.eps = 0
 
@@ -94,13 +94,13 @@ class GameLearning(object):
                 break
             self.gui.reset_game()
 
-    def beginTeaching(self, episodes):
+    def begin_teaching(self, episodes):
         """ Loop through game iterations with a teaching agent. """
         train_time =  time.perf_counter()
         teacher = Teacher()
         # Initial test
-        self.runDiag(True)
-        self.runDiag(False)
+        self.run_diag(True)
+        self.run_diag(False)
         # Train for alotted number of episodes
         while self.games_played < episodes:
             game = Game(self.agent, teacher=teacher)
@@ -109,8 +109,8 @@ class GameLearning(object):
             # Monitor progress
             if self.games_played % 100 == 0:
                 # Run random and optimal tests
-                self.runDiag(True)
-                self.runDiag(False)
+                self.run_diag(True)
+                self.run_diag(False)
             if self.games_played % 1000 == 0:
                 print("Games played: %i" % self.games_played)
         self.agent.train_time = time.perf_counter() - train_time
@@ -120,7 +120,7 @@ class GameLearning(object):
         print(f"The agent lost {self.agent.num_losses} times")
         print(f"The agent drew {self.agent.num_draws} times")
 
-    def runDiag(self, is_rand):
+    def run_diag(self, is_rand):
         self.agent.save(self.path)
         i = 0
         self.agent.num_wins, self.agent.num_losses, self.agent.num_draws = (0 for i in range(3))
@@ -142,16 +142,16 @@ class GameLearning(object):
             self.agent.testing_results_opt[1].append(test_res[1])
             self.agent.testing_results_opt[2].append(test_res[2])
 
-def initGame(args, override=False):
+def init_game(args, override=False):
     # initialize game instance
     gl = GameLearning(args,overridecheck=override)
     print(args)
 
     # play or teach
     if args.teacher_episodes is not None:
-        gl.beginTeaching(args.teacher_episodes)
+        gl.begin_teaching(args.teacher_episodes)
     else:
-        gl.beginPlaying()
+        gl.begin_playing()
 
 if __name__ == "__main__":
     # Parse command line arguments
@@ -177,4 +177,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
     print(args)
 
-    initGame(args)
+    init_game(args)

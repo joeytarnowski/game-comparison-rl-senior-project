@@ -48,7 +48,8 @@ class Game:
         Update board according to agent's move.
         """
         self.board[action[0]][action[1]] = 'O'
-        self.gui.update_board(self.board)
+        if self.gui is not None:
+            self.gui.update_board(self.board)
 
     def checkForWin(self, key):
         """

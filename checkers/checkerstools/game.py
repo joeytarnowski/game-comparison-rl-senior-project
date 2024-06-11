@@ -443,7 +443,7 @@ class Game:
         return new_state_val - prev_state_val
 
 
-    def playGame(self, player_first):
+    def play_game(self, player_first):
         """ 
         Begin the checkers game loop. 
 
@@ -541,18 +541,18 @@ class Game:
         if self.teacher is not None:
             # During teaching, chose who goes first randomly with equal probability
             if random.random() < 0.5:
-                self.playGame(player_first=False)
+                self.play_game(player_first=False)
             else:
-                self.playGame(player_first=True)
+                self.play_game(player_first=True)
         else:
             while True:
                 response = input("Would you like to go first? [y/n]: ")
                 print('')
                 if response == 'n' or response == 'no':
-                    self.playGame(player_first=False)
+                    self.play_game(player_first=False)
                     break
                 elif response == 'y' or response == 'yes':
-                    self.playGame(player_first=True)
+                    self.play_game(player_first=True)
                     break
                 else:
                     print("Invalid input. Please enter 'y' or 'n'.")

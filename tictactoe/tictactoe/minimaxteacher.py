@@ -105,7 +105,7 @@ class MMTeacher:
         self.moves_dict = {}
         """
         Trainer goes through a hierarchy of moves, making the best move that
-        is currently available each time. A touple is returned that represents
+        is currently available each time. A tuple is returned that represents
         (row, col).
         """
         # Chose randomly with some probability so that the teacher does not always win

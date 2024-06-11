@@ -53,7 +53,7 @@ class GameLearning(object):
         self.agent = agent
         self.agent_type = args.agent_type
 
-    def beginPlaying(self):
+    def begin_playing(self):
         """ Loop through game iterations with a human player. """
 
         def play_again():
@@ -76,7 +76,7 @@ class GameLearning(object):
                 print("OK. Quitting.")
                 break
 
-    def beginTeaching(self, episodes):
+    def begin_teaching(self, episodes):
         """ Loop through game iterations with a teaching agent. """
         train_time =  time.perf_counter()
         # Teacher parameters
@@ -91,8 +91,8 @@ class GameLearning(object):
 
         # Initial test
         self.agent.save(self.path)
-        self.runDiag(True, teacher)
-        self.runDiag(False, teacher)
+        self.run_diag(True, teacher)
+        self.run_diag(False, teacher)
         teacher.depth = depth
         teacher.level = level
         teacher.load_moves_dict()
@@ -108,8 +108,8 @@ class GameLearning(object):
                 teacher.save_moves_dict()
                 self.agent.save(self.path)
                 # Run random and optimal tests
-                self.runDiag(True, teacher)
-                self.runDiag(False, teacher)
+                self.run_diag(True, teacher)
+                self.run_diag(False, teacher)
                 # Reload teacher
                 teacher.depth = depth
                 teacher.level = level
@@ -133,7 +133,7 @@ class GameLearning(object):
         print(f"The agent lost {self.agent.num_losses} times")
         print(f"The agent drew {self.agent.num_draws} times")
 
-    def runDiag(self, is_rand, test_teacher):
+    def run_diag(self, is_rand, test_teacher):
 #        gc.collect()
         print(f"Running test with {'random' if is_rand else 'optimal'} teacher")
         test_time = time.perf_counter()
@@ -178,15 +178,15 @@ class GameLearning(object):
         print(f"Test time: {time.perf_counter() - test_time}")
         print(f"Agent won {test_res[0]} times, lost {test_res[1]} times, and drew {test_res[2]} times")
 
-def initGame(args, override=False):
+def init_game(args, override=False):
     # initialize game instance
     gl = GameLearning(args,overridecheck=override)
 
     # play or teach
     if args.teacher_episodes is not None:
-        gl.beginTeaching(args.teacher_episodes)
+        gl.begin_teaching(args.teacher_episodes)
     else:
-        gl.beginPlaying()
+        gl.begin_playing()
 
 if __name__ == "__main__":
     # Parse command line arguments
@@ -222,4 +222,4 @@ if __name__ == "__main__":
                 args.path = 'mcoff_agent.pkl'
             case _:
                 args.path = 'sarsa_agent.pkl'
-    initGame(args)
+    init_game(args)
