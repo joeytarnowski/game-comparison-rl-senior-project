@@ -27,13 +27,13 @@ class GameLearning(object):
         if args.path is None:
             match args.agent_type:
                 case 'q':
-                    args.path = os.path.join('Demo','q_agent.pkl')
+                    args.path = 'q_agent.pkl'
                 case 'mcon':
-                    args.path = os.path.join('Demo','mcon_agent.pkl')
+                    args.path = 'mcon_agent.pkl'
                 case 'mcoff':
-                    args.path = os.path.join('Demo','mcoff_agent.pkl')
+                    args.path = 'mcoff_agent.pkl'
                 case _:
-                    args.path = os.path.join('Demo', 'sarsa_agent.pkl')
+                    args.path = 'sarsa_agent.pkl'
 
         if args.load:
             # load an existing agent and continue training

@@ -137,13 +137,13 @@ def plot_agent_reward(agent, name, *args, **kwargs):
             plt.show()
         case "opt_best_fit":
             X = [i for i in range(len(agent.testing_results_opt[2]))]
-            Y1 = agent.testing_results_opt[2]
+            Y1 = agent.testing_results_opt[1]
             a1, b1 = best_fit(X, Y1)
-            Y2 = agent2.testing_results_opt[2]
+            Y2 = agent2.testing_results_opt[1]
             a2, b2 = best_fit(X, Y2)
-            Y3 = agent3.testing_results_opt[2]
+            Y3 = agent3.testing_results_opt[1]
             a3, b3 = best_fit(X, Y3)
-            Y4 = agent4.testing_results_opt[2]
+            Y4 = agent4.testing_results_opt[1]
             a4, b4 = best_fit(X, Y4)
 
             plt.rcParams["figure.autolayout"] = True
@@ -155,8 +155,8 @@ def plot_agent_reward(agent, name, *args, **kwargs):
             plt.plot(X, yfit2, label=name2)
             plt.plot(X, yfit3, label=name3)
             plt.plot(X, yfit4, label=name4)
-            plt.title('Line of Best Fit for Draws vs. Optimal Moves')
-            plt.ylabel('Draws')
+            plt.title('Line of Best Fit for Losses vs. Optimal Moves')
+            plt.ylabel('Losses')
             plt.xlabel('Training Games (per hundred)')
             plt.legend()
             plt.show()
