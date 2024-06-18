@@ -102,13 +102,13 @@ class Agent:
             """
             answer = []
             board_key = str(board_key)
-            if len(board_key) < (self.HEIGHT * self.WIDTH):
-                for j in range(self.WIDTH*self.HEIGHT - len(board_key)):
+            if len(board_key) < (HEIGHT * WIDTH):
+                for j in range(WIDTH*HEIGHT - len(board_key)):
                     board_key = f"0{board_key}"
-            for j in range(self.HEIGHT):
+            for j in range(HEIGHT):
                 answer.append([])
-                for i in range(self.WIDTH):
-                    answer[j].append(int(board_key[j * self.WIDTH + i]))
+                for i in range(WIDTH):
+                    answer[j].append(int(board_key[j * WIDTH + i]))
 
             return answer
     
