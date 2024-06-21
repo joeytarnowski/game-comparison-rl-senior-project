@@ -14,16 +14,16 @@ if __name__ == "__main__":
     # SARSA
     args = SimpleNamespace(agent_type='s', path='sarsa_agent.pkl', load=False, teacher_episodes=temp_args.teacher_episodes)
     print(args)
-    play.initGame(args,override=True)
+    play.init_game(args,override=True)
 
     # Q-Learning
     args = SimpleNamespace(agent_type='q', path='q_agent.pkl', load=False, teacher_episodes=temp_args.teacher_episodes)
-    play.initGame(args,override=True)
+    play.init_game(args,override=True)
 
     # Monte Carlo On-Policy
     args = SimpleNamespace(agent_type='mcon', path='mcon_agent.pkl', load=False, teacher_episodes=temp_args.teacher_episodes)
-    play.initGame(args,override=True)
+    play.init_game(args,override=True)
 
     # Monte Carlo Off-Policy
     args = SimpleNamespace(agent_type='mcoff', path='mcoff_agent.pkl', load=False, teacher_episodes=temp_args.teacher_episodes)
-    play.initGame(args,override=True)
+    play.init_game(args,override=True)
